@@ -3,7 +3,7 @@ import re
 import requests
 
 import bibtex_dblp.config as config
-import bibtex_dblp.dblp_data as dblp_data
+import bibtex_dblp.dblp_data
 
 
 class BibFormat(Enum):
@@ -61,14 +61,21 @@ def get_bibtex(dblp_id, bib_format=BibFormat.condensed):
     return resp.content.decode('utf-8')
 
 
-def search_publication(pub_query):
+def search_publication(pub_query, max_search_results=config.MAX_SEARCH_RESULTS):
     """
     Search for publication according to given query.
     :param pub_query: Query for publication.
+    :param max_search_results: Maximal number of search results to return.
     :return: Search results.
     """
-    resp = requests.get(config.DBLP_PUBLICATION_SEARCH_URL, params=dict(q=pub_query, format="json"))
+    parameters = dict(
+        q=pub_query,
+        format="json",
+        h=max_search_results
+    )
+
+    resp = requests.get(config.DBLP_PUBLICATION_SEARCH_URL, params=parameters)
     assert resp.status_code == 200
-    results = dblp_data.DblpSearchResults(resp.json())
+    results = bibtex_dblp.dblp_data.DblpSearchResults(resp.json())
     assert results.status_code == 200
     return results

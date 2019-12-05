@@ -26,9 +26,9 @@ def get_user_number(message, val_min=None, val_max=None):
             logging.error("The input is not a number.")
         else:
             if val_min is not None and inp_number < val_min:
-                logging.error("The input must be at least {}".format(val_min))
+                logging.error("The input must be at least {}.".format(val_min))
             elif val_max is not None and inp_number > val_max:
-                logging.error("The input must be at most {}".format(val_max))
+                logging.error("The input must be at most {}.".format(val_max))
             else:
                 # Number is valid
                 return inp_number

@@ -10,8 +10,10 @@ class DblpSearchResults:
         self.status_code = int(status["@code"])
         self.status_text = status["text"]
         hits = result["hits"]
-        self.total_hits = int(hits["@total"])
-        self.results = [DblpSearchResult(hit_json) for hit_json in hits["hit"]]
+        self.total_matches = int(hits["@total"])
+        self.results = []
+        if self.total_matches > 0:
+            self.results = [DblpSearchResult(hit_json) for hit_json in hits["hit"]]
 
 
 class DblpSearchResult:
@@ -41,7 +43,15 @@ class DblpPublication:
         self.doi = json.get("doi")
         self.ee = json.get("ee")
         self.url = json.get("url")
-        self.authors = [DblpAuthor(name) for name in json["authors"]["author"]]
+        self.authors = []
+        print(json)
+        authors = json.get("authors")
+        if authors:
+            authors = authors["author"]
+            if isinstance(authors, list):
+                self.authors = [DblpAuthor(name) for name in authors]
+            else:
+                self.authors = [DblpAuthor(authors)]
 
         # Possible additional fields:
         # sub_type, mdate, authors, editors, month, journal, number, chapter, isbn, crossref, publisher, school, citations, series
