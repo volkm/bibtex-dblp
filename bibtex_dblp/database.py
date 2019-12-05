@@ -1,8 +1,7 @@
 import logging
 import pybtex.database
 
-import bibtex_dblp.dblp_api
-from bibtex_dblp.dblp_api import BibFormat
+import bibtex_dblp.dblp_api as dblp_api
 
 
 def load_from_file(infile):
@@ -23,7 +22,16 @@ def write_to_file(bib, outfile):
     bib.to_file(outfile, bib_format="bibtex")
 
 
-def convert_dblp_entries(bib, bib_format=BibFormat.condensed):
+def parse_bibtex(bibtex):
+    """
+    Parse bibtex string into pybtex format.
+    :param bibtex: String containing bibtex information.
+    :return: Entry in pybtex format.
+    """
+    return pybtex.database.parse_string(bibtex, bib_format="bibtex")
+
+
+def convert_dblp_entries(bib, bib_format=dblp_api.BibFormat.condensed):
     """
     Convert bibtex entries according to DBLP bibtex format.
     :param bib: Bibliography in pybtex format.
@@ -34,16 +42,16 @@ def convert_dblp_entries(bib, bib_format=BibFormat.condensed):
     no_changes = 0
     for entry_str, entry in bib.entries.items():
         # Check for id
-        dblp_id = bibtex_dblp.dblp_api.extract_dblp_id(entry)
+        dblp_id = dblp_api.extract_dblp_id(entry)
         if dblp_id is not None:
             logging.debug("Found DBLP id '{}'".format(dblp_id))
-            result_dblp = bibtex_dblp.dblp_api.get_bibtex(dblp_id, bib_format=bib_format)
-            data = pybtex.database.parse_bytes(result_dblp, bib_format="bibtex")
-            assert len(data.entries) <= 2 if bib_format is BibFormat.crossref else len(data.entries) == 1
+            result_dblp = dblp_api.get_bibtex(dblp_id, bib_format=bib_format)
+            data = parse_bibtex(result_dblp)
+            assert len(data.entries) <= 2 if bib_format is dblp_api.BibFormat.crossref else len(data.entries) == 1
             new_entry = data.entries[entry_str]
             # Set new format
             bib.entries[entry_str] = new_entry
-            if bib_format is BibFormat.crossref:
+            if bib_format is dblp_api.BibFormat.crossref:
                 # Possible second entry
                 for key, entry in data.entries.items():
                     if key != entry_str:

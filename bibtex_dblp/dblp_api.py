@@ -2,7 +2,8 @@ from enum import Enum
 import re
 import requests
 
-from bibtex_dblp.config import DBLP_PUBLICATION_BIBTEX
+import bibtex_dblp.config as config
+import bibtex_dblp.dblp_data as dblp_data
 
 
 class BibFormat(Enum):
@@ -55,6 +56,19 @@ def get_bibtex(dblp_id, bib_format=BibFormat.condensed):
     :param bib_format: Format of bibtex export (see BibFormat).
     :return: Bibtex as binary string.
     """
-    resp = requests.get(DBLP_PUBLICATION_BIBTEX.format(key=dblp_id, bib_format=bib_format.bib_url()))
+    resp = requests.get(config.DBLP_PUBLICATION_BIBTEX.format(key=dblp_id, bib_format=bib_format.bib_url()))
     assert resp.status_code == 200
-    return resp.content
+    return resp.content.decode('utf-8')
+
+
+def search_publication(pub_query):
+    """
+    Search for publication according to given query.
+    :param pub_query: Query for publication.
+    :return: Search results.
+    """
+    resp = requests.get(config.DBLP_PUBLICATION_SEARCH_URL, params=dict(q=pub_query, format="json"))
+    assert resp.status_code == 200
+    results = dblp_data.DblpSearchResults(resp.json())
+    assert results.status_code == 200
+    return results
