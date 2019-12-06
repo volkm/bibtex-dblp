@@ -59,6 +59,7 @@ def main():
     else:
         logging.info("Selected bibtex entry:\n")
         print(pub_bibtex)
+    logging.info("Use '{}' to cite it.".format(publication.cite_key()))
 
 
 if __name__ == "__main__":

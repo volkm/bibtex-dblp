@@ -56,6 +56,9 @@ class DblpPublication:
         # Possible additional fields:
         # sub_type, mdate, authors, editors, month, journal, number, chapter, isbn, crossref, publisher, school, citations, series
 
+    def cite_key(self):
+        return "DBLP:" + self.key
+
     def __str__(self):
         authors = ", ".join([str(author) for author in self.authors])
         book = str(self.venue) + " ({})".format(self.volume if self.volume else "")
