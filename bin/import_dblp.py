@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 Import entry from DBLP according to given search input.
 """
@@ -10,7 +11,8 @@ import bibtex_dblp.io
 import bibtex_dblp.dblp_api
 from bibtex_dblp.dblp_api import BibFormat
 
-if __name__ == "__main__":
+
+def main():
     parser = argparse.ArgumentParser(description='Import entry from DBLP according to given search input from cli.')
 
     parser.add_argument('--query', '-q', help='The query to search for the publication. If none is given the query is obtained from CLI input.', type=str, default=None)
@@ -57,3 +59,7 @@ if __name__ == "__main__":
     else:
         logging.info("Selected bibtex entry:\n")
         print(pub_bibtex)
+
+
+if __name__ == "__main__":
+    main()

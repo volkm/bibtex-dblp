@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 Convert DBLP entries in a given bibliography according to the specific DBLP format (condensed, standard or crossref).
 """
@@ -8,7 +9,8 @@ import logging
 import bibtex_dblp.database
 from bibtex_dblp.dblp_api import BibFormat
 
-if __name__ == "__main__":
+
+def main():
     parser = argparse.ArgumentParser(description='Convert DBLP entries to specific format (condensed, standard, crossref).')
 
     parser.add_argument('infile', help='Input bibtex file', type=str)
@@ -27,3 +29,7 @@ if __name__ == "__main__":
     logging.info("Updated {} entries (out of {}) from DBLP".format(no_changes, len(bib.entries)))
     bibtex_dblp.database.write_to_file(bib, outfile)
     logging.info("Written to {}".format(outfile))
+
+
+if __name__ == "__main__":
+    main()
