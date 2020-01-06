@@ -19,13 +19,13 @@ The script `bin/import_dblp.py` searches for a new publication on DBLP and adds 
 
 Usage:
 ```
-import_dblp [--query QUERY] [--out OUT] [--format {condensed,standard,crossref}]
+import_dblp [--query QUERY] [--bib BIBTEX] [--format {condensed,standard,crossref}]
 ```
 
 If the argument `--query` is not given, the search keywords can be given directly in the terminal.
 The script then queries the DBLP API and displays the possible matches.
 The correct publication can be selected in the terminal (or `0` for abort).
-The bibtex entry of the selected publication is either appended to the given bibliography (if `--out` is provided) or displayed on the terminal.
+The bibtex entry of the selected publication is either appended to the given bibliography (if `--bib` is provided) or displayed on the terminal.
 
 For more options see:
 ```

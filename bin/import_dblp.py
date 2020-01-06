@@ -16,7 +16,7 @@ def main():
     parser = argparse.ArgumentParser(description='Import entry from DBLP according to given search input from cli.')
 
     parser.add_argument('--query', '-q', help='The query to search for the publication. If none is given the query is obtained from CLI input.', type=str, default=None)
-    parser.add_argument('--out', '-o', help='Output bibtex file where the imported entry will be appended. If no output file is given, the bibtex is printed to the CLI.', type=str,
+    parser.add_argument('--bib', '-b', help='Bibtex file where the imported entry will be appended. If no bibtex file is given, the bibtex is printed to the CLI.', type=str,
                         default=None)
     parser.add_argument('--format', '-f', help='DBLP format type to convert into.', type=BibFormat, choices=list(BibFormat), default=BibFormat.condensed)
     parser.add_argument('--max-results', help="Maximal number of search results to display.", type=int, default=bibtex_dblp.config.MAX_SEARCH_RESULTS)
@@ -52,10 +52,10 @@ def main():
 
     publication = search_results.results[select - 1].publication
     pub_bibtex = bibtex_dblp.dblp_api.get_bibtex(publication.key, bib_format=args.format)
-    if args.out:
-        with open(args.out, "a") as f:
+    if args.bib:
+        with open(args.bib, "a") as f:
             f.write(pub_bibtex)
-        logging.info("Bibtex file appended to {}.".format(args.out))
+        logging.info("Bibtex file appended to {}.".format(args.bib))
     else:
         logging.info("Selected bibtex entry:\n")
         print(pub_bibtex)
