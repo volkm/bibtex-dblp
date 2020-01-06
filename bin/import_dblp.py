@@ -7,6 +7,7 @@ import argparse
 import logging
 
 import bibtex_dblp.config
+import bibtex_dblp.database
 import bibtex_dblp.io
 import bibtex_dblp.dblp_api
 from bibtex_dblp.dblp_api import BibFormat
@@ -27,11 +28,32 @@ def main():
     logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.DEBUG if args.verbose else logging.INFO)
     max_search_results = args.max_results
 
+    bib = None
+    if args.bib is not None:
+        # Load bibliography
+        bib = bibtex_dblp.database.load_from_file(args.bib)
+
     if args.query:
         search_words = args.query
     else:
         search_words = bibtex_dblp.io.get_user_input("Give the publication title to search for: ")
+
     # Search for publications
+    if bib is not None:
+        # Check if publication already exists
+        bib_result = bibtex_dblp.database.search(bib, search_words)
+        if bib_result:
+            print("The bibliography already contains the following matches:")
+            for i in range(len(bib_result)):
+                print("({})\t{}".format(i + 1, bibtex_dblp.database.print_entry(bib_result[i][0])))
+            select = bibtex_dblp.io.get_user_number("Select the intended publication (0 to search online): ", 0, len(bib_result))
+            if select > 0:
+                selected_entry = bib_result[select-1][0]
+                logging.info("Selected bibtex entry:\n")
+                print(bibtex_dblp.database.print_entry(selected_entry))
+                logging.info("Use '{}' to cite it.".format(selected_entry.key))
+                exit(0)
+
     search_results = bibtex_dblp.dblp_api.search_publication(search_words, max_search_results=max_search_results)
     if search_results.total_matches == 0:
         print("The search returned no matches.")

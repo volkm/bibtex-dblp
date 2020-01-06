@@ -60,7 +60,7 @@ class DblpPublication:
 
     def __str__(self):
         authors = ", ".join([str(author) for author in self.authors])
-        book = str(self.venue) + " ({})".format(self.volume if self.volume else "")
+        book = str(self.venue) + " ({})".format(self.volume) if self.volume else ""
         return "{}:\n\t{} {} {}".format(authors, self.title, book, self.year)
 
 

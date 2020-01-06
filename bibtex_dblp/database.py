@@ -2,6 +2,7 @@ import logging
 import pybtex.database
 
 import bibtex_dblp.dblp_api as dblp_api
+import bibtex_dblp.search
 
 
 def load_from_file(infile):
@@ -60,3 +61,37 @@ def convert_dblp_entries(bib, bib_format=dblp_api.BibFormat.condensed):
             logging.debug("Set new entry for '{}'".format(entry_str))
             no_changes += 1
     return bib, no_changes
+
+
+def search(bib, search_string):
+    """
+    Search for string in bibliography.
+    Only the fields 'author' and 'title' are checked.
+    :param bib: Bibliography in pybtex format.
+    :param search_string: String to search for.
+    :return: List of possible matches of publications with their score.
+    """
+    results = []
+    for _, entry in bib.entries.items():
+        authors = " and ".join([str(author) for author in entry.persons['author']])
+        inp = "{}:{}".format(authors, entry.fields["title"])
+        score = bibtex_dblp.search.search_score(inp, search_string)
+        if score > 0.5:
+            results.append((entry, score))
+    results.sort(key=lambda tup: tup[1], reverse=True)
+    return results
+
+
+def print_entry(bib_entry):
+    """
+    Print pybtex entry.
+    :param bib_entry: Pybtex entry.
+    :return: String.
+    """
+    authors = ", ".join([str(author) for author in bib_entry.persons['author']])
+    book = ""
+    if 'booktitle' in bib_entry.fields:
+        book = bib_entry.fields['booktitle']
+    if 'volume' in bib_entry.fields:
+        book += " ({})".format(bib_entry.fields['volume'])
+    return "{}:\n\t{} {} {}".format(authors, bib_entry.fields['title'], book, bib_entry.fields['year'])
