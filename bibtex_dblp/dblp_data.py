@@ -44,7 +44,6 @@ class DblpPublication:
         self.ee = json.get("ee")
         self.url = json.get("url")
         self.authors = []
-        print(json)
         authors = json.get("authors")
         if authors:
             authors = authors["author"]
