@@ -48,7 +48,7 @@ class DblpPublication:
         if authors:
             authors = authors["author"]
             if isinstance(authors, list):
-                self.authors = [DblpAuthor(name) for name in authors]
+                self.authors = [DblpAuthor(author) for author in authors]
             else:
                 self.authors = [DblpAuthor(authors)]
 
@@ -69,8 +69,9 @@ class DblpAuthor:
     Author in DBLP.
     """
 
-    def __init__(self, name):
-        self.name = name
+    def __init__(self, json):
+        self.name = json.get("text")
+        self.pid = json.get("pid")
 
     def __str__(self):
         return self.name
