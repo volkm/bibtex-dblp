@@ -9,17 +9,17 @@ def test_search_publication():
     for i in range(len(search_results.results)):
         result = search_results.results[i].publication
         if result.doi == '10.1007/S10791-008-9048-X':
-            result.title = 'Output-sensitive autocompletion search.'
-            result.booktitle = None
-            result.volume = '11'
-            result.venue = 'Inf. Retr.'
-            result.pages = '269-286'
-            result.year = 2008
-            result.type = 'Journal Articles'
-            result.key = 'journals/ir/BastMW08'
-            result.doi = '10.1007/S10791-008-9048-X'
-            result.ee = 'https://doi.org/10.1007/s10791-008-9048-x'
-            result.url = 'https://dblp.org/rec/journals/ir/BastMW08'
+            assert result.title == 'Output-sensitive autocompletion search.'
+            assert result.booktitle == None
+            assert result.volume == '11'
+            assert result.venue == 'Inf. Retr.'
+            assert result.pages == '269-286'
+            assert result.year == 2008
+            assert result.type == 'Journal Articles'
+            assert result.key == 'journals/ir/BastMW08'
+            assert result.doi == '10.1007/S10791-008-9048-X'
+            assert result.ee == 'https://doi.org/10.1007/s10791-008-9048-x'
+            assert result.url == 'https://dblp.org/rec/journals/ir/BastMW08'
             authors = [author.name for author in result.authors]
             assert 'H. Bast 0001' in authors
             assert 'Christian Worm Mortensen' in authors
