@@ -73,8 +73,12 @@ def search(bib, search_string):
     """
     results = []
     for _, entry in bib.entries.items():
-        authors = " and ".join([str(author) for author in entry.persons['author']])
-        inp = "{}:{}".format(authors, entry.fields["title"])
+        if 'author' in entry.persons:
+            authors = entry.persons['author']
+            author_names = " and ".join([str(author) for author in authors])
+        else:
+            author_names = ""
+        inp = "{}:{}".format(author_names, entry.fields["title"])
         score = bibtex_dblp.search.search_score(inp, search_string)
         if score > 0.5:
             results.append((entry, score))
