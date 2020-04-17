@@ -1,5 +1,5 @@
 import bibtex_dblp.dblp_api
-from bibtex_dblp.dblp_api import BibFormat
+from bibtex_dblp.config import CONDENSED, CROSSREF, STANDARD
 
 
 def test_search_publication():
@@ -10,7 +10,7 @@ def test_search_publication():
         result = search_results.results[i].publication
         if result.doi == '10.1007/S10791-008-9048-X':
             assert result.title == 'Output-sensitive autocompletion search.'
-            assert result.booktitle == None
+            assert result.booktitle is None
             assert result.volume == '11'
             assert result.venue == 'Inf. Retr.'
             assert result.pages == '269-286'
@@ -35,13 +35,13 @@ def test_dblp_bibtex():
     result = search_results.results[1].publication
     assert result.doi == '10.1007/11880561_13'
 
-    bibtex_standard = bibtex_dblp.dblp_api.get_bibtex(result.key, bib_format=BibFormat.standard)
+    bibtex_standard = bibtex_dblp.dblp_api.get_bibtex(result.key, bib_format=STANDARD)
     assert "booktitle = {String Processing and Information Retrieval, 13th International Conference," in bibtex_standard
     assert "{SPIRE} 2006, Glasgow, UK, October 11-13, 2006, Proceedings}" in bibtex_standard
 
-    bibtex_crossref = bibtex_dblp.dblp_api.get_bibtex(result.key, bib_format=BibFormat.crossref)
+    bibtex_crossref = bibtex_dblp.dblp_api.get_bibtex(result.key, bib_format=CROSSREF)
     assert "crossref  = {DBLP:conf/spire/2006}," in bibtex_crossref
     assert "editor " in bibtex_crossref
 
-    bibtex_condensed = bibtex_dblp.dblp_api.get_bibtex(result.key, bib_format=BibFormat.condensed)
+    bibtex_condensed = bibtex_dblp.dblp_api.get_bibtex(result.key, bib_format=CONDENSED)
     assert "booktitle = {{SPIRE}}" in bibtex_condensed

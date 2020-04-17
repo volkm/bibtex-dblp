@@ -3,6 +3,7 @@ import pybtex.database
 
 import bibtex_dblp.dblp_api as dblp_api
 import bibtex_dblp.search
+from bibtex_dblp.config import BIB_FORMATS, CONDENSED, CROSSREF
 
 
 def load_from_file(infile):
@@ -32,13 +33,14 @@ def parse_bibtex(bibtex):
     return pybtex.database.parse_string(bibtex, bib_format="bibtex")
 
 
-def convert_dblp_entries(bib, bib_format=dblp_api.BibFormat.condensed):
+def convert_dblp_entries(bib, bib_format=CONDENSED):
     """
     Convert bibtex entries according to DBLP bibtex format.
     :param bib: Bibliography in pybtex format.
     :param bib_format: Bibtex format of DBLP.
     :return: converted bibliography, number of changed entries
     """
+    assert(bib_format in BIB_FORMATS)
     logging.debug("Convert to format '{}'".format(bib_format))
     no_changes = 0
     for entry_str, entry in bib.entries.items():
@@ -48,11 +50,11 @@ def convert_dblp_entries(bib, bib_format=dblp_api.BibFormat.condensed):
             logging.debug("Found DBLP id '{}'".format(dblp_id))
             result_dblp = dblp_api.get_bibtex(dblp_id, bib_format=bib_format)
             data = parse_bibtex(result_dblp)
-            assert len(data.entries) <= 2 if bib_format is dblp_api.BibFormat.crossref else len(data.entries) == 1
+            assert len(data.entries) <= 2 if bib_format is CROSSREF else len(data.entries) == 1
             new_entry = data.entries[entry_str]
             # Set new format
             bib.entries[entry_str] = new_entry
-            if bib_format is dblp_api.BibFormat.crossref:
+            if bib_format is CROSSREF:
                 # Possible second entry
                 for key, entry in data.entries.items():
                     if key != entry_str:
