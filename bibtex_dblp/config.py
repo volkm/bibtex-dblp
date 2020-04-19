@@ -61,7 +61,7 @@ def _convert_types(cfg):
             cfg[key] = int(cfg[key])
 
 
-def load(config_file=CONFIG_FILE):
+def load(config_file):
     """Load the configuration file and return its contents as a dict."""
     logging.debug(f"Loading {config_file}...")
     try:
@@ -71,7 +71,7 @@ def load(config_file=CONFIG_FILE):
             if _is_valid(cfg, config_file):
                 _convert_types(cfg)
                 return cfg
-    except FileExistsError:
+    except FileNotFoundError:
         pass
     return {}
 
@@ -83,7 +83,7 @@ class Config:
 
     def __init__(self, file):
         if file:
-            self.config_file = file
+            self.config_file = Path(file)
         self.config = load(self.config_file)
 
     def get(self, key):
