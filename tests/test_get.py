@@ -1,7 +1,9 @@
-from click.testing import CliRunner
-from bibtex_dblp.cli import main
-import bibtex_dblp.config as config
 import pytest
+from click.testing import CliRunner
+
+import bibtex_dblp.config as config
+from bibtex_dblp.cli import main
+from bibtex_dblp.dblp_api import sanitize_key
 
 example_ids = [
     "DBLP:conf/spire/BastMW06",
@@ -80,6 +82,17 @@ expected = {
 }""",
 }
 
+expected_from_doi_org = """@incollection{Bast_2006,
+	doi = {10.1007/11880561_13},
+	url = {https://doi.org/10.1007%2F11880561_13},
+	year = 2006,
+	publisher = {Springer Berlin Heidelberg},
+	pages = {150--162},
+	author = {Holger Bast and Christian W. Mortensen and Ingmar Weber},
+	title = {Output-Sensitive Autocompletion Search},
+	booktitle = {String Processing and Information Retrieval}
+}"""
+
 
 @pytest.mark.parametrize("id", example_ids)
 @pytest.mark.parametrize("format", config.BIB_FORMATS)
@@ -94,3 +107,18 @@ def test_get(id, format):
         for i in range(len(output)):
             if "timestamp" not in output[i]:
                 assert output[i] == exp[i]
+
+
+@pytest.mark.parametrize(
+    "id", [id for id in example_ids if sanitize_key(id)[0] == "DOI"]
+)
+def test_get_doi_org(id):
+    runner = CliRunner(mix_stderr=False)
+    with runner.isolated_filesystem():
+        result = runner.invoke(main, ["--prefer-doi-org", "get", id])
+        assert result.exit_code == 0
+        output = result.stdout.strip().split("\n")
+        exp = expected_from_doi_org.strip().split("\n")
+        assert len(output) == len(exp)
+        for i in range(len(output)):
+            assert output[i] == exp[i]

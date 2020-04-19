@@ -1,8 +1,10 @@
-from click.testing import CliRunner
-from bibtex_dblp.cli import main
-import bibtex_dblp.config as config
 import json
+
 import pytest
+from click.testing import CliRunner
+
+import bibtex_dblp.config as config
+from bibtex_dblp.cli import main
 
 
 @pytest.mark.parametrize(

@@ -22,6 +22,11 @@ version = pkg_resources.require(config.APP_NAME)[0].version
     "-c", "--config-file", help="Use this config file instead of the default."
 )
 @click.option(
+    "--prefer-doi-org",
+    help="When retrieving bib-entries via their DOI, try to resolve them with doi.org first.",
+    is_flag=True,
+)
+@click.option(
     "-f",
     "--format",
     help="bib-entry format that should be used for output.",
@@ -44,6 +49,7 @@ def main(ctx, **kwargs):
     ctx.obj = config.Config(kwargs["config_file"])
 
     ctx.obj.set_cmd_line("format", kwargs["format"])
+    ctx.obj.set_cmd_line("prefer_doi_org", kwargs["prefer_doi_org"])
 
 
 @main.command()
@@ -69,7 +75,11 @@ $ echo "DBLP:conf/spire/BastMW06\n10.2307/2268281" | dblp get
     if len(key) == 0:
         key = (k.strip() for k in sys.stdin.readlines())
     for k in key:
-        b = bibtex_dblp.dblp_api.get_bibtex(k, bib_format=ctx.obj.get("format"))
+        b = bibtex_dblp.dblp_api.get_bibtex(
+            k,
+            bib_format=ctx.obj.get("format"),
+            prefer_doi_org=ctx.obj.get("prefer_doi_org"),
+        )
         print(b)
 
 
@@ -116,7 +126,9 @@ Query the database for a paper title and append the selected bib-entry to refere
             query, ctx.obj.get("max_search_results")
         )
         bib_entry = bibtex_dblp.dblp_api.get_bibtex(
-            bib_key, bib_format=ctx.obj.get("format")
+            bib_key,
+            bib_format=ctx.obj.get("format"),
+            prefer_doi_org=ctx.obj.get("prefer_doi_org"),
         )
     else:
         bib = None
@@ -217,7 +229,9 @@ Reads from input.bib and writes output.bib
         output = input
 
     bib = bibtex_dblp.database.load_from_file(input)
-    bib, no_changes = bibtex_dblp.database.convert_dblp_entries(bib, bib_format=ctx.obj.get("format"))
+    bib, no_changes = bibtex_dblp.database.convert_dblp_entries(
+        bib, bib_format=ctx.obj.get("format")
+    )
     logging.info(
         "Updated {} entries (out of {}) from DBLP".format(no_changes, len(bib.entries))
     )
