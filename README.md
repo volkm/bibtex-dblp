@@ -62,7 +62,7 @@ This makes the new setting persistent by writing it to a per-user configuration 
 
 ### Environment variable
 ```
-DBLP_FORMAT=format dblp [...]
+DBLP_FORMAT=standard dblp [...]
 ```
 If the environment variable `DBLP_FORMAT` is defined, it will be used regardless of what is written in the config file.
 
