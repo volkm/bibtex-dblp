@@ -4,6 +4,7 @@ import bibtex_dblp.config as config
 import json
 import pytest
 
+
 @pytest.mark.parametrize(
     "kv",
     [("format", v) for v in config.BIB_FORMATS]
