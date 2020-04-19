@@ -63,7 +63,7 @@ Examples:
 
 \b
 $ dblp get DBLP:conf/spire/BastMW06
-$ dblp get DBLP:conf/spire/BastMW06 10.2307/2268281 --format standard
+$ dblp --format standard get DBLP:conf/spire/BastMW06 10.2307/2268281
 $ echo "DBLP:conf/spire/BastMW06\n10.2307/2268281" | dblp get
 """
     if len(key) == 0:
