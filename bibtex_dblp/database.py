@@ -47,7 +47,7 @@ def convert_dblp_entries(bib, bib_format=CONDENSED):
         # Check for id
         dblp_id = dblp_api.extract_dblp_id(entry)
         if dblp_id is not None:
-            logging.debug("Found DBLP id '{}'".format(dblp_id))
+            logging.debug("Found id '{}'".format(dblp_id))
             result_dblp = dblp_api.get_bibtex(dblp_id, bib_format=bib_format)
             data = parse_bibtex(result_dblp)
             assert len(data.entries) <= 2 if bib_format is CROSSREF else len(data.entries) == 1

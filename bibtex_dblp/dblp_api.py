@@ -23,18 +23,28 @@ def get_url_part(bib_format):
 
 def extract_dblp_id(entry):
     """
-    Extract DBLP id by either using the biburl if given or trying to use the entry name.
+    Extract DBLP id or DOI from the entry using the following methods (in this order):
+    - If the field biburl is available, extract it from there
+    - If the field doi is available, extract it from there
+    - If the entry name appears to be a DBLP id oder DOI, use that. 
     :param entry: Bibliography entry.
-    :return: DBLP id or None if no could be extracted.
+    :return: DBLP id, DOI, or None if no could be extracted.
     """
     if "biburl" in entry.fields:
-        match = re.search(r"http(s?)://dblp.org/rec/(.*)", entry.fields["biburl"])
+        match = re.search(r"http(s?)://dblp.org/rec/(.*)\.bib", entry.fields["biburl"])
         if match:
-            return match.group(2)
+            return "DBLP:" + match.group(2)
+
+    if "doi" in entry.fields and entry.fields["doi"]:
+        k = entry.fields["doi"]
+        # weirdly, DBLP escapes "_" with "\_", so we have to remove all backslashes:
+        return "doi:" + k.replace("\\", "")
 
     t, k = sanitize_key(entry.key)
     if t == "DBLP":
-        return k
+        return "DBLP:" + k
+    elif t == "DOI":
+        return "doi:" + k
     else:
         return None
 

@@ -1,4 +1,5 @@
 import bibtex_dblp.dblp_api as api
+import bibtex_dblp.database as db
 from bibtex_dblp.config import CONDENSED, CROSSREF, STANDARD
 
 
@@ -54,3 +55,17 @@ def test_sanitize_key():
     assert api.sanitize_key("doi:10.1007/11880561") == ("DOI", "10.1007/11880561")
     assert api.sanitize_key("DOI:10.1007/11880561") == ("DOI", "10.1007/11880561")
     assert api.sanitize_key("10.1007/11880561") == ("DOI", "10.1007/11880561")
+
+
+def test_extract_dblp_id():
+    text = api.get_bibtex("DBLP:conf/spire/2006", bib_format=STANDARD)
+    entries = db.parse_bibtex(text).entries.values()
+    assert len(entries) == 1
+    [entry] = entries
+    assert(entry.fields["doi"] == "10.1007/11880561")
+    assert api.extract_dblp_id(entry) == "DBLP:conf/spire/2006"
+    entry.fields["biburl"] = ""
+    assert api.extract_dblp_id(entry) == "doi:10.1007/11880561"
+    entry.fields["doi"] = None
+    assert api.extract_dblp_id(entry) == "DBLP:conf/spire/2006"
+
