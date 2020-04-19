@@ -102,7 +102,7 @@ dblp get DBLP:journals/ir/BastMW08
 fetches the bib entry of the paper [Output-sensitive autocompletion search](https://dblp.org/rec/bibtex1/journals/ir/BastMW08) from the url `https://dblp.org/rec/bib1/journals/ir/BastMW08.bib` and writes it to standard output.
 It is also possible to get the same entry via its DOI as follows:
 ```
-dblp get doi:10.1007/s10791-008-9048-x}
+dblp get doi:10.1007/s10791-008-9048-x
 ```
 This will fetch the URL `https://dblp.org/doi/bib1/10.1007/s10791-008-9048-x`.
 For convenience, the `DBLP:` or `doi:` prefixes are not case sensitive. In case the prefix is missing, `get` will assume that the key is a DBLP id if it contains at least two slashes, and it assumes that it is a DOI if there is exactly one slash.
