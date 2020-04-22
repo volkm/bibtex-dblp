@@ -14,8 +14,8 @@ from bibtex_dblp.dblp_api import BIB_FORMATS, CONDENSED
 # Application settings
 APP_NAME = "bibtex-dblp"
 VERSION = pkg_resources.require(APP_NAME)[0].version
-CONFIG_DIR = Path(appdirs.user_config_dir(APP_NAME))
-CONFIG_FILE = CONFIG_DIR / "config.json"
+DEFAULT_CONFIG_DIR = Path(appdirs.user_config_dir(APP_NAME))
+DEFAULT_CONFIG_FILE = DEFAULT_CONFIG_DIR / "config.json"
 
 ## Default values (in case they're missing in the .json file)
 DEFAULT_CONFIG = {
@@ -66,7 +66,7 @@ def load(config_file):
 
 
 class Config:
-    config_file = CONFIG_FILE
+    config_file = DEFAULT_CONFIG_FILE
     config = {}
     cmd_line_options = {}
 

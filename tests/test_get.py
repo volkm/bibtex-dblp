@@ -33,7 +33,7 @@ def test_get(id, format):
 
 
 @pytest.mark.parametrize(
-    "id", [id for id in example_ids if api.sanitize_key(id)[0] == "DOI"]
+    "id", [id for id in example_ids if api.paper_id_from_key(id).namespace == api.DOI]
 )
 def test_get_doi_org(id):
     runner = CliRunner(mix_stderr=False)

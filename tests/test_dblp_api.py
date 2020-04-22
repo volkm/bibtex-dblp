@@ -55,12 +55,16 @@ def test_dblp_bibtex():
 
 
 def test_sanitize_key():
-    assert api.sanitize_key("DBLP:conf/spire/2006") == ("DBLP", "conf/spire/2006")
-    assert api.sanitize_key("dblp:conf/spire/2006") == ("DBLP", "conf/spire/2006")
-    assert api.sanitize_key("conf/spire/2006") == ("DBLP", "conf/spire/2006")
-    assert api.sanitize_key("doi:10.1007/11880561") == ("DOI", "10.1007/11880561")
-    assert api.sanitize_key("DOI:10.1007/11880561") == ("DOI", "10.1007/11880561")
-    assert api.sanitize_key("10.1007/11880561") == ("DOI", "10.1007/11880561")
+    assert api.paper_id_from_key("DBLP:conf/spire/2006").namespace == api.DBLP
+    assert api.paper_id_from_key("dblp:conf/spire/2006").id == "conf/spire/2006"
+    assert api.paper_id_from_key("conf/spire/2006").namespace == api.DBLP
+    assert api.paper_id_from_key("conf/spire/2006").id == "conf/spire/2006"
+    assert api.paper_id_from_key("doi:10.1007/11880561").namespace == api.DOI
+    assert api.paper_id_from_key("doi:10.1007/11880561").id == "10.1007/11880561"
+    assert api.paper_id_from_key("DOI:10.1007/11880561").namespace == api.DOI
+    assert api.paper_id_from_key("DOI:10.1007/11880561").id == "10.1007/11880561"
+    assert api.paper_id_from_key("10.1007/11880561").namespace == api.DOI
+    assert api.paper_id_from_key("10.1007/11880561").id == "10.1007/11880561"
 
 
 def test_extract_dblp_id():
@@ -69,8 +73,8 @@ def test_extract_dblp_id():
     assert len(entries) == 1
     [entry] = entries
     assert entry.fields["doi"] == "10.1007/11880561"
-    assert api.extract_dblp_id(entry) == "DBLP:conf/spire/2006"
+    assert api.paper_id_from_entry(entry).key() == "DBLP:conf/spire/2006"
     entry.fields["biburl"] = ""
-    assert api.extract_dblp_id(entry) == "doi:10.1007/11880561"
+    assert api.paper_id_from_entry(entry).key() == "doi:10.1007/11880561"
     entry.fields["doi"] = None
-    assert api.extract_dblp_id(entry) == "DBLP:conf/spire/2006"
+    assert api.paper_id_from_entry(entry).key() == "DBLP:conf/spire/2006"

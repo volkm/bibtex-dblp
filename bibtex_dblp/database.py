@@ -42,13 +42,13 @@ def convert_dblp_entries(bib, bib_format=CONDENSED):
     :return: converted bibliography, number of changed entries
     """
     assert bib_format in BIB_FORMATS
-    logging.debug("Convert to format '{}'".format(bib_format))
+    logging.debug(f"Convert to format '{bib_format}'")
     no_changes = 0
     for entry_str, entry in bib.entries.items():
         # Check for id
-        id = dblp_api.extract_dblp_id(entry)
+        id = dblp_api.paper_id_from_entry(entry)
         if id is not None:
-            logging.debug("Found id '{}'".format(id))
+            logging.debug(f"Found id '{id}'")
             result_dblp = dblp_api.get_bibtex(id, bib_format=bib_format)
             data = parse_bibtex(result_dblp)
             assert (
@@ -67,7 +67,7 @@ def convert_dblp_entries(bib, bib_format=CONDENSED):
                     if key != new_entry.key and key != retrieved_entry_key:
                         if key not in bib.entries:
                             bib.entries[key] = entry
-            logging.debug("Set new entry for '{}'".format(entry_str))
+            logging.debug(f"Set new entry for '{entry_str}'")
             no_changes += 1
     return bib, no_changes
 

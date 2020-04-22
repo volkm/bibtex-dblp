@@ -35,7 +35,47 @@ def get_url_part(bib_format):
         return "bib2"
 
 
-def extract_dblp_id(entry):
+DBLP = "DBLP"
+DOI = "doi"
+NAMESPACES = [DBLP, DOI, None]
+PROVIDERS = ["dblp.org", "doi.org"]
+
+
+class PaperId:
+    namespace = None
+    id = None
+
+    def __init__(self, namespace, id):
+        assert(namespace in NAMESPACES)
+        self.namespace = namespace
+        self.id = id
+
+    def key(self):
+        if self.namespace is None:
+            return self.id
+        else:
+            return self.namespace + ":" + self.id
+
+    def get_request(self, bib_format, provider):
+        assert(provider in PROVIDERS)
+        if provider == "dblp.org":
+            part = get_url_part(bib_format)
+            if self.namespace == DBLP:
+                return {"url": DBLP_PUBLICATION_BIBTEX.format(key=self.id, bib_format=part)}
+            elif self.namespace == DOI:
+                return {"url": DOI_FROM_DBLP.format(key=self.id, bib_format=part)}
+        elif provider == "doi.org":
+            if self.namespace == DOI:
+                return {"url": DOI_FROM_DOI_ORG.format(key=self.id), "headers": {"Accept": "application/x-bibtex; charset=utf-8"}}
+
+    def get_requests(self, bib_format, providers=PROVIDERS):
+        for p in providers:
+            r = self.get_request(bib_format=bib_format, provider=p)
+            if r is not None:
+                yield r
+
+
+def paper_id_from_entry(entry):
     """
     Extract DBLP id or DOI from the entry using the following methods (in this order):
     - If the field biburl is available, extract it from there
@@ -47,23 +87,18 @@ def extract_dblp_id(entry):
     if "biburl" in entry.fields:
         match = re.search(r"http(s?)://dblp.org/rec/(.*)\.bib", entry.fields["biburl"])
         if match:
-            return "DBLP:" + match.group(2)
+            return PaperId(DBLP, match.group(2))
 
     if "doi" in entry.fields and entry.fields["doi"]:
         k = entry.fields["doi"]
-        # weirdly, DBLP escapes "_" with "\_", so we have to remove all backslashes:
-        return "doi:" + k.replace("\\", "")
+        if len(k) > 0:
+            # weirdly, DBLP escapes "_" with "\_", so we have to remove all backslashes:
+            return PaperId(DOI, k.replace("\\", ""))
 
-    t, k = sanitize_key(entry.key)
-    if t == "DBLP":
-        return "DBLP:" + k
-    elif t == "DOI":
-        return "doi:" + k
-    else:
-        return None
+    return paper_id_from_key(entry.key)
 
 
-def sanitize_key(k):
+def paper_id_from_key(k):
     """
     Given a key in one of these formats:
     DBLP:conf/spire/2006
@@ -75,40 +110,21 @@ def sanitize_key(k):
     :return: A tuple type, key.
     """
     if k[:5].upper() == "DBLP:":
-        return "DBLP", k[5:]
+        return PaperId(DBLP, k[5:])
     elif k[:4].upper() == "DOI:":
-        return "DOI", k[4:]
+        return PaperId(DOI, k[4:])
     elif k.count("/") >= 2:
         logging.debug(f"Key {k} was *guessed* to be a DBLP id.")
-        return "DBLP", k
+        return PaperId(DBLP, k)
     elif k.count("/") == 1:
         logging.debug(f"Key {k} was *guessed* to be a DOI.")
-        return "DOI", k
+        return PaperId(DOI, k)
     else:
         logging.error(f"Could not determine type of {k}.")
-        return None, k
+        return PaperId(None, k)
 
 
-def bibtex_requests(type, key, bib_format, prefer_doi_org):
-    part = get_url_part(bib_format)
-    if type == "DBLP":
-        url = DBLP_PUBLICATION_BIBTEX.format(key=key, bib_format=part)
-        headers = None
-        yield url, headers
-    elif type == "DOI":
-        url1 = DOI_FROM_DBLP.format(key=key, bib_format=part)
-        headers1 = None
-        url2 = DOI_FROM_DOI_ORG.format(key=key)
-        headers2 = {"Accept": "application/x-bibtex; charset=utf-8"}
-        if prefer_doi_org:
-            yield url2, headers2
-            yield url1, headers1
-        else:
-            yield url1, headers1
-            yield url2, headers2
-
-
-def get_bibtex(id, bib_format, prefer_doi_org=False):
+def get_bibtex(paper_id, bib_format, prefer_doi_org=False):
     """
     Get bibtex entry in specified format.
     :param id: DBLP id or DOI for entry.
@@ -116,19 +132,18 @@ def get_bibtex(id, bib_format, prefer_doi_org=False):
     :return: Bibtex as binary string.
     """
     assert bib_format in BIB_FORMATS
-    t, k = sanitize_key(id)
-    logging.debug(
-        f"In get_bibtex({id}, {bib_format}): key has been sanitized to {t}, {k}"
-    )
-    for url, headers in bibtex_requests(t, k, bib_format, prefer_doi_org):
-        if headers:
-            resp = requests.get(url, headers=headers)
+    if type(paper_id) == str:
+        paper_id = paper_id_from_key(paper_id)
+    providers = PROVIDERS if not prefer_doi_org else reversed(PROVIDERS)
+    for r in paper_id.get_requests(bib_format=bib_format, providers=providers):
+        if "headers" in r:
+            resp = requests.get(r["url"], headers=r["headers"])
         else:
-            resp = requests.get(url)
+            resp = requests.get(r["url"])
         if resp.status_code == 200:
             return resp.content.decode("utf-8")
         else:
-            logging.warning(f"Could not retrieve {id} from {url}.")
+            logging.warning(f"Could not retrieve {id} from {r['url']}.")
 
 
 def search_publication(pub_query, max_search_results):
