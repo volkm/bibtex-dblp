@@ -1,10 +1,8 @@
 import pytest
 from click.testing import CliRunner
-import logging
 
 import bibtex_dblp.config as config
 from bibtex_dblp.cli import main
-from bibtex_dblp.dblp_api import sanitize_key
 
 example_entries = [
     """@inproceedings{DBLP:conf/spire/BastMW06,
@@ -106,4 +104,3 @@ def test_convert(entry, format):
                 assert output[0] == entry.strip().split("\n")[0]
             elif "timestamp" not in output[i]:
                 assert output[i].replace("\\", "") == exp[i].replace("\\", "")
-

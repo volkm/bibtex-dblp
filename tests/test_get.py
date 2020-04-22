@@ -122,9 +122,15 @@ def test_get_doi_org(id):
         assert output[i] == exp[i]
 
 
-
 @pytest.mark.parametrize(
-    "id", ["nonexistent", "nonexistend:id", "DBLP:egicnadEc", "doi:egicnadEc", "this/does/not/exist/at/all"]
+    "id",
+    [
+        "nonexistent",
+        "nonexistend:id",
+        "DBLP:egicnadEc",
+        "doi:egicnadEc",
+        "this/does/not/exist/at/all",
+    ],
 )
 def test_nonexisting(id):
     runner = CliRunner(mix_stderr=False)

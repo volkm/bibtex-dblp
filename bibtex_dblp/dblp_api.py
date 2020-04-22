@@ -40,7 +40,7 @@ def extract_dblp_id(entry):
     Extract DBLP id or DOI from the entry using the following methods (in this order):
     - If the field biburl is available, extract it from there
     - If the field doi is available, extract it from there
-    - If the entry name appears to be a DBLP id oder DOI, use that. 
+    - If the entry name appears to be a DBLP id oder DOI, use that.
     :param entry: Bibliography entry.
     :return: DBLP id, DOI, or None if no could be extracted.
     """

@@ -1,4 +1,5 @@
 import logging
+
 import pybtex.database
 
 import bibtex_dblp.dblp_api as dblp_api
@@ -40,7 +41,7 @@ def convert_dblp_entries(bib, bib_format=CONDENSED):
     :param bib_format: Bibtex format of DBLP.
     :return: converted bibliography, number of changed entries
     """
-    assert(bib_format in BIB_FORMATS)
+    assert bib_format in BIB_FORMATS
     logging.debug("Convert to format '{}'".format(bib_format))
     no_changes = 0
     for entry_str, entry in bib.entries.items():
@@ -50,7 +51,11 @@ def convert_dblp_entries(bib, bib_format=CONDENSED):
             logging.debug("Found id '{}'".format(id))
             result_dblp = dblp_api.get_bibtex(id, bib_format=bib_format)
             data = parse_bibtex(result_dblp)
-            assert len(data.entries) <= 2 if bib_format is CROSSREF else len(data.entries) == 1
+            assert (
+                len(data.entries) <= 2
+                if bib_format is CROSSREF
+                else len(data.entries) == 1
+            )
             new_entry = data.entries.values()[0]
             retrieved_entry_key = new_entry.key
             new_entry.key = entry_str
@@ -77,8 +82,8 @@ def search(bib, search_string):
     """
     results = []
     for _, entry in bib.entries.items():
-        if 'author' in entry.persons:
-            authors = entry.persons['author']
+        if "author" in entry.persons:
+            authors = entry.persons["author"]
             author_names = " and ".join([str(author) for author in authors])
         else:
             author_names = ""
@@ -96,10 +101,12 @@ def print_entry(bib_entry):
     :param bib_entry: Pybtex entry.
     :return: String.
     """
-    authors = ", ".join([str(author) for author in bib_entry.persons['author']])
+    authors = ", ".join([str(author) for author in bib_entry.persons["author"]])
     book = ""
-    if 'booktitle' in bib_entry.fields:
-        book = bib_entry.fields['booktitle']
-    if 'volume' in bib_entry.fields:
-        book += " ({})".format(bib_entry.fields['volume'])
-    return "{}:\n\t{} {} {}".format(authors, bib_entry.fields['title'], book, bib_entry.fields['year'])
+    if "booktitle" in bib_entry.fields:
+        book = bib_entry.fields["booktitle"]
+    if "volume" in bib_entry.fields:
+        book += " ({})".format(bib_entry.fields["volume"])
+    return "{}:\n\t{} {} {}".format(
+        authors, bib_entry.fields["title"], book, bib_entry.fields["year"]
+    )
