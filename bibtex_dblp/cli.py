@@ -49,6 +49,7 @@ def main(ctx, **kwargs):
     ctx.obj = config.Config(kwargs["config_file"])
 
     ctx.obj.set_cmd_line("format", kwargs["format"])
+    ctx.obj.set_cmd_line("quiet", kwargs["quiet"])
     ctx.obj.set_cmd_line("prefer_doi_org", kwargs["prefer_doi_org"])
 
 
@@ -223,20 +224,26 @@ Reads from input.bib and writes output.bib
 """
     if input is None or input == "-":
         input = sys.stdin
-        if output is None or output == "-":
-            output = sys.stdout
+        output = sys.stdout
     else:
-        output = input
+        if output is None:
+            output = input
+        elif output == "-":
+            output = sys.stdout
 
     bib = bibtex_dblp.database.load_from_file(input)
     bib, no_changes = bibtex_dblp.database.convert_dblp_entries(
         bib, bib_format=ctx.obj.get("format")
     )
-    logging.info(
-        "Updated {} entries (out of {}) from DBLP".format(no_changes, len(bib.entries))
-    )
+
+    if not ctx.obj.get("quiet"):
+        click.echo(
+            f"Updated {no_changes} entries (out of {len(bib.entries)}) from DBLP",
+            file=sys.stderr,
+        )
     bibtex_dblp.database.write_to_file(bib, output)
-    logging.info("Written to {}".format(output))
+    if not ctx.obj.get("quiet"):
+        click.echo(f"Written to {output}", file=sys.stderr)
 
 
 @main.command("config")

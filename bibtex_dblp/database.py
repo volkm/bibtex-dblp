@@ -45,19 +45,21 @@ def convert_dblp_entries(bib, bib_format=CONDENSED):
     no_changes = 0
     for entry_str, entry in bib.entries.items():
         # Check for id
-        dblp_id = dblp_api.extract_dblp_id(entry)
-        if dblp_id is not None:
-            logging.debug("Found id '{}'".format(dblp_id))
-            result_dblp = dblp_api.get_bibtex(dblp_id, bib_format=bib_format)
+        id = dblp_api.extract_dblp_id(entry)
+        if id is not None:
+            logging.debug("Found id '{}'".format(id))
+            result_dblp = dblp_api.get_bibtex(id, bib_format=bib_format)
             data = parse_bibtex(result_dblp)
             assert len(data.entries) <= 2 if bib_format is CROSSREF else len(data.entries) == 1
-            new_entry = data.entries[entry_str]
+            new_entry = data.entries.values()[0]
+            retrieved_entry_key = new_entry.key
+            new_entry.key = entry_str
             # Set new format
             bib.entries[entry_str] = new_entry
             if bib_format is CROSSREF:
                 # Possible second entry
                 for key, entry in data.entries.items():
-                    if key != entry_str:
+                    if key != new_entry.key and key != retrieved_entry_key:
                         if key not in bib.entries:
                             bib.entries[key] = entry
             logging.debug("Set new entry for '{}'".format(entry_str))

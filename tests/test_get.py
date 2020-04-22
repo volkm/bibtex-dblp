@@ -98,15 +98,14 @@ expected_from_doi_org = """@incollection{Bast_2006,
 @pytest.mark.parametrize("format", config.BIB_FORMATS)
 def test_get(id, format):
     runner = CliRunner(mix_stderr=False)
-    with runner.isolated_filesystem():
-        result = runner.invoke(main, ["--format", format, "get", id])
-        assert result.exit_code == 0
-        output = result.stdout.strip().split("\n")
-        exp = expected[format].strip().split("\n")
-        assert len(output) == len(exp)
-        for i in range(len(output)):
-            if "timestamp" not in output[i]:
-                assert output[i] == exp[i]
+    result = runner.invoke(main, ["--format", format, "get", id])
+    assert result.exit_code == 0
+    output = result.stdout.strip().split("\n")
+    exp = expected[format].strip().split("\n")
+    assert len(output) == len(exp)
+    for i in range(len(output)):
+        if "timestamp" not in output[i]:
+            assert output[i] == exp[i]
 
 
 @pytest.mark.parametrize(
@@ -114,11 +113,10 @@ def test_get(id, format):
 )
 def test_get_doi_org(id):
     runner = CliRunner(mix_stderr=False)
-    with runner.isolated_filesystem():
-        result = runner.invoke(main, ["--prefer-doi-org", "get", id])
-        assert result.exit_code == 0
-        output = result.stdout.strip().split("\n")
-        exp = expected_from_doi_org.strip().split("\n")
-        assert len(output) == len(exp)
-        for i in range(len(output)):
-            assert output[i] == exp[i]
+    result = runner.invoke(main, ["--prefer-doi-org", "get", id])
+    assert result.exit_code == 0
+    output = result.stdout.strip().split("\n")
+    exp = expected_from_doi_org.strip().split("\n")
+    assert len(output) == len(exp)
+    for i in range(len(output)):
+        assert output[i] == exp[i]
