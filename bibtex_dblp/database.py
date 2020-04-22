@@ -3,7 +3,7 @@ import pybtex.database
 
 import bibtex_dblp.dblp_api as dblp_api
 import bibtex_dblp.search
-from bibtex_dblp.config import BIB_FORMATS, CONDENSED, CROSSREF
+from bibtex_dblp.dblp_api import BIB_FORMATS, CONDENSED, CROSSREF
 
 
 def load_from_file(infile):

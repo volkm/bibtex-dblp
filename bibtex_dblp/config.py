@@ -8,21 +8,7 @@ from pathlib import Path
 
 import appdirs
 
-# DBLP URLs
-DBLP_BASE_URL = "https://dblp.org/"
-DBLP_XML_URL = DBLP_BASE_URL + "xml/dblp.xml.gz"
-DBLP_PUBLICATION_SEARCH_URL = DBLP_BASE_URL + "search/publ/api"
-DBLP_PUBLICATION_BIBTEX = DBLP_BASE_URL + "rec/{bib_format}/{key}.bib"
-DOI_FROM_DBLP = DBLP_BASE_URL + "doi/{bib_format}/{key}"
-DOI_FROM_DOI_ORG = "https://doi.org/{key}"
-
-# DBLP bib-entry types
-CONDENSED = "condensed"
-STANDARD = "standard"
-CROSSREF = "crossref"
-
-BIB_FORMATS = [CONDENSED, STANDARD, CROSSREF]
-
+from bibtex_dblp.dblp_api import CONDENSED, BIB_FORMATS
 
 # Application settings
 APP_NAME = "bibtex-dblp"

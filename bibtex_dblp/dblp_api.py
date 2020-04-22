@@ -3,8 +3,22 @@ import re
 
 import requests
 
-import bibtex_dblp.config as config
 import bibtex_dblp.dblp_data
+
+# DBLP URLs
+DBLP_BASE_URL = "https://dblp.org/"
+DBLP_XML_URL = DBLP_BASE_URL + "xml/dblp.xml.gz"
+DBLP_PUBLICATION_SEARCH_URL = DBLP_BASE_URL + "search/publ/api"
+DBLP_PUBLICATION_BIBTEX = DBLP_BASE_URL + "rec/{bib_format}/{key}.bib"
+DOI_FROM_DBLP = DBLP_BASE_URL + "doi/{bib_format}/{key}"
+DOI_FROM_DOI_ORG = "https://doi.org/{key}"
+
+# DBLP bib-entry types
+CONDENSED = "condensed"
+STANDARD = "standard"
+CROSSREF = "crossref"
+
+BIB_FORMATS = [CONDENSED, STANDARD, CROSSREF]
 
 
 def get_url_part(bib_format):
@@ -12,12 +26,12 @@ def get_url_part(bib_format):
     Get identifier of format for DBLP urls.
     :return:
     """
-    assert bib_format in config.BIB_FORMATS
-    if bib_format == config.CONDENSED:
+    assert bib_format in BIB_FORMATS
+    if bib_format == CONDENSED:
         return "bib0"
-    elif bib_format == config.STANDARD:
+    elif bib_format == STANDARD:
         return "bib1"
-    elif bib_format == config.CROSSREF:
+    elif bib_format == CROSSREF:
         return "bib2"
 
 
@@ -78,13 +92,13 @@ def sanitize_key(k):
 def bibtex_requests(type, key, bib_format, prefer_doi_org):
     part = get_url_part(bib_format)
     if type == "DBLP":
-        url = config.DBLP_PUBLICATION_BIBTEX.format(key=key, bib_format=part)
+        url = DBLP_PUBLICATION_BIBTEX.format(key=key, bib_format=part)
         headers = None
         yield url, headers
     elif type == "DOI":
-        url1 = config.DOI_FROM_DBLP.format(key=key, bib_format=part)
+        url1 = DOI_FROM_DBLP.format(key=key, bib_format=part)
         headers1 = None
-        url2 = config.DOI_FROM_DOI_ORG.format(key=key)
+        url2 = DOI_FROM_DOI_ORG.format(key=key)
         headers2 = {"Accept": "application/x-bibtex; charset=utf-8"}
         if prefer_doi_org:
             yield url2, headers2
@@ -101,7 +115,7 @@ def get_bibtex(id, bib_format, prefer_doi_org=False):
     :param bib_format: Format of bibtex export.
     :return: Bibtex as binary string.
     """
-    assert bib_format in config.BIB_FORMATS
+    assert bib_format in BIB_FORMATS
     t, k = sanitize_key(id)
     logging.debug(
         f"In get_bibtex({id}, {bib_format}): key has been sanitized to {t}, {k}"
@@ -126,7 +140,7 @@ def search_publication(pub_query, max_search_results):
     """
     parameters = dict(q=pub_query, format="json", h=max_search_results)
 
-    resp = requests.get(config.DBLP_PUBLICATION_SEARCH_URL, params=parameters)
+    resp = requests.get(DBLP_PUBLICATION_SEARCH_URL, params=parameters)
     assert resp.status_code == 200
     results = bibtex_dblp.dblp_data.DblpSearchResults(resp.json())
     assert results.status_code == 200

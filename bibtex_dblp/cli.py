@@ -247,7 +247,6 @@ Reads from input.bib and writes output.bib
         click.echo(f"Written to {output}", file=sys.stderr)
 
 
-
 @main.command()
 @click.argument("auxfile", type=click.Path())
 @click.pass_context
@@ -261,11 +260,11 @@ $ latex main.tex
 $ dblp citations main | dblp get > main.bib
 """
     from pybtex.auxfile import parse_file
+
     if not auxfile.endswith(".aux"):
         auxfile = auxfile + ".aux"
     aux = parse_file(auxfile)
     click.echo("\n".join(sorted(set(aux.citations))))
-
 
 
 @main.command("config")

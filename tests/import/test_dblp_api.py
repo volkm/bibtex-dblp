@@ -1,6 +1,6 @@
 import bibtex_dblp.dblp_api as api
 import bibtex_dblp.database as db
-from bibtex_dblp.config import CONDENSED, CROSSREF, STANDARD
+from bibtex_dblp.dblp_api import CONDENSED, CROSSREF, STANDARD
 
 
 def test_search_publication():
