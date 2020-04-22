@@ -5,17 +5,14 @@ import logging
 import sys
 
 import click
-import pkg_resources
 
 import bibtex_dblp.config as config
 import bibtex_dblp.database
-import bibtex_dblp.dblp_api
-
-version = pkg_resources.require(config.APP_NAME)[0].version
+import bibtex_dblp.dblp_api as api
 
 
 @click.group()
-@click.version_option(version=version)
+@click.version_option(version=config.VERSION)
 @click.option("-v", "--verbose", help="Print debug output.", is_flag=True)
 @click.option("-q", "--quiet", help="Only produce necessary output.", is_flag=True)
 @click.option(
@@ -31,7 +28,7 @@ version = pkg_resources.require(config.APP_NAME)[0].version
     "--format",
     help="bib-entry format that should be used for output.",
     envvar="BIBTEX_DBLP_FORMAT",
-    type=click.Choice(config.BIB_FORMATS, case_sensitive=False),
+    type=click.Choice(api.BIB_FORMATS, case_sensitive=False),
 )
 @click.pass_context
 def main(ctx, **kwargs):

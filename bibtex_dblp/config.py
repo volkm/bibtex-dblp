@@ -7,11 +7,13 @@ import logging
 from pathlib import Path
 
 import appdirs
+import pkg_resources
 
 from bibtex_dblp.dblp_api import BIB_FORMATS, CONDENSED
 
 # Application settings
 APP_NAME = "bibtex-dblp"
+VERSION = pkg_resources.require(APP_NAME)[0].version
 CONFIG_DIR = Path(appdirs.user_config_dir(APP_NAME))
 CONFIG_FILE = CONFIG_DIR / "config.json"
 
