@@ -246,6 +246,27 @@ Reads from input.bib and writes output.bib
         click.echo(f"Written to {output}", file=sys.stderr)
 
 
+
+@main.command()
+@click.argument("auxfile", type=click.Path())
+@click.pass_context
+def citations(ctx, auxfile):
+    """Extract all citations from an .aux file.
+
+If you always use DOIs or DBLP ids as citation keys, you can generate the entire bibliography as follows:
+
+\b
+$ latex main.tex
+$ dblp citations main | dblp get > main.bib
+"""
+    from pybtex.auxfile import parse_file
+    if not auxfile.endswith(".aux"):
+        auxfile = auxfile + ".aux"
+    aux = parse_file(auxfile)
+    click.echo("\n".join(sorted(set(aux.citations))))
+
+
+
 @main.command("config")
 @click.option("--get", help="get value.")
 @click.option(
