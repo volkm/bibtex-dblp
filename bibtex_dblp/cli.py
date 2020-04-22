@@ -81,7 +81,8 @@ $ echo "DBLP:conf/spire/BastMW06\n10.2307/2268281" | dblp get
             bib_format=ctx.obj.get("format"),
             prefer_doi_org=ctx.obj.get("prefer_doi_org"),
         )
-        print(b)
+        if b is not None:
+            click.echo(b)
 
 
 @main.command("import")

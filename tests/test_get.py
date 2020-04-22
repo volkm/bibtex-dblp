@@ -120,3 +120,15 @@ def test_get_doi_org(id):
     assert len(output) == len(exp)
     for i in range(len(output)):
         assert output[i] == exp[i]
+
+
+
+@pytest.mark.parametrize(
+    "id", ["nonexistent", "nonexistend:id", "DBLP:egicnadEc", "doi:egicnadEc", "this/does/not/exist/at/all"]
+)
+def test_nonexisting(id):
+    runner = CliRunner(mix_stderr=False)
+    result = runner.invoke(main, ["get", id])
+    assert result.exit_code == 0
+    output = result.stdout.strip()
+    assert output == ""
