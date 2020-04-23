@@ -39,6 +39,7 @@ DBLP = "DBLP"
 DOI = "doi"
 NAMESPACES = [DBLP, DOI, None]
 PROVIDERS = ["dblp.org", "doi.org"]
+sessions = {}
 
 
 class PaperId:
@@ -46,7 +47,7 @@ class PaperId:
     id = None
 
     def __init__(self, namespace, id):
-        assert(namespace in NAMESPACES)
+        assert namespace in NAMESPACES
         self.namespace = namespace
         self.id = id
 
@@ -57,16 +58,28 @@ class PaperId:
             return self.namespace + ":" + self.id
 
     def get_request(self, bib_format, provider):
-        assert(provider in PROVIDERS)
+        assert provider in PROVIDERS
+        if provider is not None and provider not in sessions:
+            sessions[provider] = requests.Session()
         if provider == "dblp.org":
             part = get_url_part(bib_format)
             if self.namespace == DBLP:
-                return {"url": DBLP_PUBLICATION_BIBTEX.format(key=self.id, bib_format=part)}
+                return {
+                    "session": sessions[provider],
+                    "url": DBLP_PUBLICATION_BIBTEX.format(key=self.id, bib_format=part),
+                }
             elif self.namespace == DOI:
-                return {"url": DOI_FROM_DBLP.format(key=self.id, bib_format=part)}
+                return {
+                    "session": sessions[provider],
+                    "url": DOI_FROM_DBLP.format(key=self.id, bib_format=part),
+                }
         elif provider == "doi.org":
             if self.namespace == DOI:
-                return {"url": DOI_FROM_DOI_ORG.format(key=self.id), "headers": {"Accept": "application/x-bibtex; charset=utf-8"}}
+                return {
+                    "session": sessions[provider],
+                    "url": DOI_FROM_DOI_ORG.format(key=self.id),
+                    "headers": {"Accept": "application/x-bibtex; charset=utf-8"},
+                }
 
     def get_requests(self, bib_format, providers=PROVIDERS):
         for p in providers:
@@ -114,13 +127,13 @@ def paper_id_from_key(k):
     elif k[:4].upper() == "DOI:":
         return PaperId(DOI, k[4:])
     elif k.count("/") >= 2:
-        logging.debug(f"Key {k} was *guessed* to be a DBLP id.")
+        logging.debug(f"Citation key {k} was *guessed* to be a DBLP id.")
         return PaperId(DBLP, k)
     elif k.count("/") == 1:
-        logging.debug(f"Key {k} was *guessed* to be a DOI.")
+        logging.debug(f"Citation key {k} was *guessed* to be a DOI.")
         return PaperId(DOI, k)
     else:
-        logging.error(f"Could not determine type of {k}.")
+        logging.debug(f"Citation key {k} does not seem to belong to any namespace.")
         return PaperId(None, k)
 
 
@@ -136,10 +149,11 @@ def get_bibtex(paper_id, bib_format, prefer_doi_org=False):
         paper_id = paper_id_from_key(paper_id)
     providers = PROVIDERS if not prefer_doi_org else reversed(PROVIDERS)
     for r in paper_id.get_requests(bib_format=bib_format, providers=providers):
+        s = r["session"]
         if "headers" in r:
-            resp = requests.get(r["url"], headers=r["headers"])
+            resp = s.get(r["url"], headers=r["headers"])
         else:
-            resp = requests.get(r["url"])
+            resp = s.get(r["url"])
         if resp.status_code == 200:
             return resp.content.decode("utf-8")
         else:
@@ -155,7 +169,9 @@ def search_publication(pub_query, max_search_results):
     """
     parameters = dict(q=pub_query, format="json", h=max_search_results)
 
-    resp = requests.get(DBLP_PUBLICATION_SEARCH_URL, params=parameters)
+    if "dblp.org" not in sessions:
+        sessions["dblp.org"] = requests.Session()
+    resp = sessions["dblp.org"].get(DBLP_PUBLICATION_SEARCH_URL, params=parameters)
     assert resp.status_code == 200
     results = bibtex_dblp.dblp_data.DblpSearchResults(resp.json())
     assert results.status_code == 200
