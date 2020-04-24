@@ -4,6 +4,8 @@ import re
 import requests
 
 import bibtex_dblp.dblp_data
+import bibtex_dblp.database as db
+import bibtex_dblp.formats as formats
 
 # DBLP URLs
 DBLP_BASE_URL = "https://dblp.org/"
@@ -12,27 +14,6 @@ DBLP_PUBLICATION_SEARCH_URL = DBLP_BASE_URL + "search/publ/api"
 DBLP_PUBLICATION_BIBTEX = DBLP_BASE_URL + "rec/{bib_format}/{key}.bib"
 DOI_FROM_DBLP = DBLP_BASE_URL + "doi/{bib_format}/{key}"
 DOI_FROM_DOI_ORG = "https://doi.org/{key}"
-
-# DBLP bib-entry types
-CONDENSED = "condensed"
-STANDARD = "standard"
-CROSSREF = "crossref"
-
-BIB_FORMATS = [CONDENSED, STANDARD, CROSSREF]
-
-
-def get_url_part(bib_format):
-    """
-    Get identifier of format for DBLP urls.
-    :return:
-    """
-    assert bib_format in BIB_FORMATS
-    if bib_format == CONDENSED:
-        return "bib0"
-    elif bib_format == STANDARD:
-        return "bib1"
-    elif bib_format == CROSSREF:
-        return "bib2"
 
 
 DBLP = "DBLP"
@@ -62,20 +43,23 @@ class PaperId:
         if provider is not None and provider not in sessions:
             sessions[provider] = requests.Session()
         if provider == "dblp.org":
-            part = get_url_part(bib_format)
+            part = formats.dblp_article_url_part(bib_format)
             if self.namespace == DBLP:
                 return {
+                    "provider": "dblp.org",
                     "session": sessions[provider],
                     "url": DBLP_PUBLICATION_BIBTEX.format(key=self.id, bib_format=part),
                 }
             elif self.namespace == DOI:
                 return {
+                    "provider": "doi.org",
                     "session": sessions[provider],
                     "url": DOI_FROM_DBLP.format(key=self.id, bib_format=part),
                 }
         elif provider == "doi.org":
             if self.namespace == DOI:
                 return {
+                    "provider": "doi.org",
                     "session": sessions[provider],
                     "url": DOI_FROM_DOI_ORG.format(key=self.id),
                     "headers": {"Accept": "application/x-bibtex; charset=utf-8"},
@@ -137,25 +121,29 @@ def paper_id_from_key(k):
         return PaperId(None, k)
 
 
-def get_bibtex(paper_id, bib_format, prefer_doi_org=False):
+def get_bibtex(paper_id, bib_format, prefer_doi_org=False, reparse="none"):
     """
     Get bibtex entry in specified format.
     :param id: DBLP id or DOI for entry.
     :param bib_format: Format of bibtex export.
     :return: Bibtex as binary string.
     """
-    assert bib_format in BIB_FORMATS
     if type(paper_id) == str:
         paper_id = paper_id_from_key(paper_id)
     providers = PROVIDERS if not prefer_doi_org else reversed(PROVIDERS)
     for r in paper_id.get_requests(bib_format=bib_format, providers=providers):
+        p = r["provider"]
         s = r["session"]
         if "headers" in r:
             resp = s.get(r["url"], headers=r["headers"])
         else:
             resp = s.get(r["url"])
         if resp.status_code == 200:
-            return resp.content.decode("utf-8")
+            text = resp.content.decode("utf-8")
+            if reparse == "none" or reparse != p:
+                return text
+            else:
+                return "\n\n".join(db.print_entry(e, bib_format=bib_format) for e in db.parse_bibtex(text).entries.values())
         else:
             logging.warning(f"Could not retrieve {id} from {r['url']}.")
 

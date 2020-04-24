@@ -8,7 +8,7 @@ import click
 
 import bibtex_dblp.config as config
 import bibtex_dblp.database
-import bibtex_dblp.dblp_api as api
+import bibtex_dblp.formats as formats
 
 
 @click.group()
@@ -28,7 +28,7 @@ import bibtex_dblp.dblp_api as api
     "--format",
     help="bib-entry format that should be used for output.",
     envvar="BIBTEX_DBLP_FORMAT",
-    type=click.Choice(api.BIB_FORMATS, case_sensitive=False),
+    type=click.Choice(formats.BIB_FORMATS, case_sensitive=False),
 )
 @click.pass_context
 def main(ctx, **kwargs):
@@ -52,8 +52,9 @@ def main(ctx, **kwargs):
 
 @main.command()
 @click.argument("key", nargs=-1)
+@click.option("--reparse", type=click.Choice(["all", "doi.org", "dblp.org", "none"], case_sensitive=False), default="doi.org", help="Reparse and pretty-print the bib-entry when it is retrieved from this source.")
 @click.pass_context
-def get(ctx, key):
+def get(ctx, key, reparse):
     """Retrieve bib entries by their global keys, and print them.
 
 \b
@@ -77,6 +78,7 @@ $ echo "DBLP:conf/spire/BastMW06\n10.2307/2268281" | dblp get
             k,
             bib_format=ctx.obj.get("format"),
             prefer_doi_org=ctx.obj.get("prefer_doi_org"),
+            reparse=reparse
         )
         if b is not None:
             click.echo(b)

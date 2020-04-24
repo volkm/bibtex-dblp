@@ -9,7 +9,7 @@ from pathlib import Path
 import appdirs
 import pkg_resources
 
-from bibtex_dblp.dblp_api import BIB_FORMATS, CONDENSED
+from bibtex_dblp.formats import BIB_FORMATS, CONDENSED
 
 # Application settings
 APP_NAME = "bibtex-dblp"

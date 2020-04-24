@@ -4,7 +4,7 @@ import pytest
 from click.testing import CliRunner
 from pybtex.database import parse_string
 
-import bibtex_dblp.dblp_api as api
+from bibtex_dblp.formats import BIB_FORMATS
 from bibtex_dblp.cli import main
 
 example_entries = [
@@ -38,12 +38,12 @@ def example_file(f):
     return pybtex_output
 
 
-expected = dict((f, example_file(f)) for f in api.BIB_FORMATS)
+expected = dict((f, example_file(f)) for f in BIB_FORMATS)
 expected_from_doi_org = example_file("doi.org")
 
 
 @pytest.mark.parametrize("entry", example_entries)
-@pytest.mark.parametrize("format", api.BIB_FORMATS)
+@pytest.mark.parametrize("format", BIB_FORMATS)
 def test_convert(entry, format):
     runner = CliRunner(mix_stderr=False)
     with runner.isolated_filesystem():

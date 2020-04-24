@@ -4,7 +4,7 @@ import pybtex.database
 
 import bibtex_dblp.dblp_api as dblp_api
 import bibtex_dblp.search
-from bibtex_dblp.dblp_api import BIB_FORMATS, CONDENSED, CROSSREF
+from bibtex_dblp.formats import BIB_FORMATS, CONDENSED, CROSSREF
 
 
 def load_from_file(infile):
@@ -95,18 +95,73 @@ def search(bib, search_string):
     return results
 
 
-def print_entry(bib_entry):
+def text_wrap(initial, text, line_length=90):
+    words = text.split(" ")
+    indentation = len(initial)
+    actual_length = line_length - indentation
+    lines = []
+    line = ""
+    for w in words:
+        if len(line) == 0:
+            line += w
+        elif len(line) + 1 + len(w) <= actual_length:
+            line += " " + w
+        else:
+            lines.append(line)
+            line = w
+    if len(line) > 0:
+        lines.append(line)
+    return initial + ("\n" + (" " * indentation)).join(lines)
+
+
+def print_fieldstart(f, indentation=15):
     """
-    Print pybtex entry.
-    :param bib_entry: Pybtex entry.
+    Print start of a bibtex field. For example:
+      author    = {
+    :param String: Field name.
+    :param Integer: Total number of characters in return string (will be padded with spaces before '=')
     :return: String.
     """
-    authors = ", ".join([str(author) for author in bib_entry.persons["author"]])
-    book = ""
-    if "booktitle" in bib_entry.fields:
-        book = bib_entry.fields["booktitle"]
-    if "volume" in bib_entry.fields:
-        book += " ({})".format(bib_entry.fields["volume"])
-    return "{}:\n\t{} {} {}".format(
-        authors, bib_entry.fields["title"], book, bib_entry.fields["year"]
-    )
+    return "  " + f + (" " * (indentation - len(f) - 5)) + "= {"
+
+
+def print_persons(group, bib_entry):
+    text = print_fieldstart(group)
+    sep = " and\n" + (" " * len(text))
+
+    def names(p):
+        return p.first_names + p.middle_names + p.last_names
+    text += sep.join(" ".join(names(p)) for p in bib_entry.persons[group])
+    text += "}"
+    return text
+
+
+def print_entry(bib_entry, bib_format="pybtex"):
+    """
+    Print bibtex entry in a DBLP-simulated format, or in pybtex standard format.
+    :param bib_entry: Pybtex entry.
+    :param bib_format: One of BIB_FORMATS, or 'pybtex'.
+    :return: String.
+    """
+    bib_format in BIB_FORMATS + ["pybtex"]
+    if bib_format == "pybtex":
+        authors = ", ".join([str(author) for author in bib_entry.persons["author"]])
+        book = ""
+        if "booktitle" in bib_entry.fields:
+            book = bib_entry.fields["booktitle"]
+        if "volume" in bib_entry.fields:
+            book += " ({})".format(bib_entry.fields["volume"])
+        return "{}:\n\t{} {} {}".format(
+            authors, bib_entry.fields["title"], book, bib_entry.fields["year"]
+        )
+    else:
+        text = "@" + bib_entry.type + "{" + bib_entry.key + ",\n"
+        lines = []
+        for g in ["author", "editor"]:
+            if g in bib_entry.persons:
+                lines.append(print_persons(g, bib_entry))
+        for f in bib_entry.fields:
+            initial = print_fieldstart(f)
+            lines.append(text_wrap(initial, bib_entry.fields[f]) + "}")
+        text += ",\n".join(lines) + "\n}"
+        return text

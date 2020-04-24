@@ -3,13 +3,13 @@ import json
 import pytest
 from click.testing import CliRunner
 
-import bibtex_dblp.dblp_api as api
 from bibtex_dblp.cli import main
+from bibtex_dblp.formats import BIB_FORMATS
 
 
 @pytest.mark.parametrize(
     "kv",
-    [("format", v) for v in api.BIB_FORMATS]
+    [("format", v) for v in BIB_FORMATS]
     + [("max_search_results", v) for v in range(2)],
 )
 def test_set_unset_get(kv):
