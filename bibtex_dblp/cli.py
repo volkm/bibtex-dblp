@@ -63,11 +63,12 @@ def get(ctx, key, reparse):
     """Retrieve bib entries by their global keys, and print them.
 
 \b
-Supported key types:
+Supported namespaces are:
 - DBLP ids (e.g., DBLP:conf/spire/BastMW06)
 - DOIs (e.g., doi:10.1007/11880561_13)
+- ISBNs (e.g., ISBN:3-540-45774-7)
 
-If the prefix ("DBLP:" or "doi:") is omitted, we will guess based on the number of slashes.
+If the prefix ("DBLP:" or "doi:") is omitted, we will guess based on the number of slashes. Namespace ISBN is guessed if the key consists of 10 or 13 digits after removing dashes.
 
 Examples:
 

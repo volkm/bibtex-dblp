@@ -125,6 +125,10 @@ For scripting purposes, the entries can also be read from standard input (one pe
 ```
 echo "DBLP:conf/spire/BastMW06\n10.2307/2268281" | dblp get
 ```
+ISBNs (as far as they're available on dblp.org) are also supported:
+```
+dblp get ISBN:3-540-45774-7
+```
 
 # Development
 

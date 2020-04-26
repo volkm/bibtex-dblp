@@ -14,11 +14,13 @@ DBLP_PUBLICATION_SEARCH_URL = DBLP_BASE_URL + "search/publ/api"
 DBLP_PUBLICATION_BIBTEX = DBLP_BASE_URL + "rec/{bib_format}/{key}.bib"
 DOI_FROM_DBLP = DBLP_BASE_URL + "doi/{bib_format}/{key}"
 DOI_FROM_DOI_ORG = "https://doi.org/{key}"
+ISBN_FROM_DBLP = DBLP_BASE_URL + "isbn/{bib_format}/{key}"
 
 
 DBLP = "DBLP"
 DOI = "doi"
-NAMESPACES = [DBLP, DOI, None]
+ISBN = "ISBN"
+NAMESPACES = [DBLP, DOI, ISBN, None]
 PROVIDERS = ["dblp.org", "doi.org"]
 sessions = {}
 
@@ -56,6 +58,12 @@ class PaperId:
                     "session": sessions[provider],
                     "url": DOI_FROM_DBLP.format(key=self.id, bib_format=part),
                 }
+            elif self.namespace == ISBN:
+                return {
+                    "provider": "dblp.org",
+                    "session": sessions[provider],
+                    "url": ISBN_FROM_DBLP.format(key=self.id, bib_format=part),
+                }
         elif provider == "doi.org":
             if self.namespace == DOI:
                 return {
@@ -70,6 +78,10 @@ class PaperId:
             r = self.get_request(bib_format=bib_format, provider=p)
             if r is not None:
                 yield r
+
+
+def is_isbn(i):
+    return len(i) in [10, 13] and re.match('^[0-9]*$', i)
 
 
 def paper_id_from_entry(entry):
@@ -97,6 +109,15 @@ def paper_id_from_entry(entry):
             # DBLP escapes "_" with "\_", so we invert that:
             return PaperId(DOI, k.replace("\\_", "_"))
 
+    if "isbn" in entry.fields:
+        k = entry.fields["isbn"]
+        if k and len(k) > 0:
+            i = k.replace("-", "")
+            if is_isbn(i):
+                return PaperId(ISBN, i)
+            else:
+                logging.error(f"ISBN field {k} of entry {entry.key} is not a valid ISBN.")
+
     return paper_id_from_key(entry.key)
 
 
@@ -115,6 +136,13 @@ def paper_id_from_key(k):
         return PaperId(DBLP, k[5:])
     elif k[:4].upper() == "DOI:":
         return PaperId(DOI, k[4:])
+    elif k[:5].upper() == "ISBN:":
+        i = k[5:].replace("-", "")
+        if is_isbn(i):
+            return PaperId(ISBN, i)
+        else:
+            logging.error(f"{k} is not a valid ISBN.")
+            return PaperId(None, k)
     elif k.count("/") >= 2:
         logging.debug(f"Citation key {k} was *guessed* to be a DBLP id.")
         return PaperId(DBLP, k)
@@ -122,8 +150,13 @@ def paper_id_from_key(k):
         logging.debug(f"Citation key {k} was *guessed* to be a DOI.")
         return PaperId(DOI, k)
     else:
-        logging.debug(f"Citation key {k} does not seem to belong to any namespace.")
-        return PaperId(None, k)
+        i = k.replace("-", "")
+        if is_isbn(i):
+            logging.debug(f"Citation key {k} was *guessed* to be an ISBN.")
+            return PaperId(ISBN, i)
+        else:
+            logging.debug(f"Citation key {k} does not seem to belong to any namespace.")
+            return PaperId(None, k)
 
 
 def get_bibtex(paper_id, bib_format, prefer_doi_org=False, reparse="all"):

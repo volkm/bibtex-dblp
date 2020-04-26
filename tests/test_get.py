@@ -41,6 +41,26 @@ def test_get_from_dblp_org(id, format):
             assert output[i] == exp[i]
 
 
+@pytest.mark.parametrize("id", ["isbn:3-540-45774-7"])
+@pytest.mark.parametrize("format", formats.BIB_FORMATS)
+def test_get_isbn(id, format):
+    """
+    When retrieving and printing DBLP entries,
+    we must produce exactly the same output as DBLP
+    (even if the bib-entry was parsed with pybtex in between).
+    """
+    runner = CliRunner(mix_stderr=False)
+    result = runner.invoke(main, ["--format", format, "get", id, "--reparse", "all"])
+    assert result.exit_code == 0
+    output = result.stdout.strip().split("\n")
+    exp = open(FILES_DIR / Path(f"3540457747-{format}.bib")).read()
+    exp = exp.strip().split("\n")
+    assert len(output) == len(exp)
+    for i in range(len(output)):
+        if "timestamp" not in output[i]:
+            assert output[i] == exp[i]
+
+
 def same_when_parsed(bibtext1, bibtext2):
     """
     Check that two bib-entries (given as text) are semantically the same,
