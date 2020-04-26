@@ -7,31 +7,21 @@ import bibtex_dblp.search
 from bibtex_dblp.formats import BIB_FORMATS, CONDENSED, CROSSREF
 
 
-def load_from_file(infile):
-    """
-    Load bibliography from file.
-    :param infile: Path of input file.
-    :return: Bibiliography in pybtex format.
-    """
-    return pybtex.database.parse_file(infile, bib_format="bibtex")
-
-
-def write_to_file(bib, outfile):
-    """
-    Write bibliography to file.
-    :param bib: Bibliography in pybtex format.
-    :param outfile: Path of output file.
-    """
-    bib.to_file(outfile, bib_format="bibtex")
-
-
 def parse_bibtex(bibtex):
     """
     Parse bibtex string into pybtex format.
     :param bibtex: String containing bibtex information.
     :return: Entry in pybtex format.
     """
-    return pybtex.database.parse_string(bibtex, bib_format="bibtex")
+    d = pybtex.database.parse_string(bibtex, bib_format="bibtex")
+    # DBLP escapes underscored (uses \_ instead of _).
+    # This *seems* to be harmful when doi's and URLs are used with hyperref, so we remove \
+    for e in d.entries.values():
+        if "doi" in e.fields:
+            e.fields["doi"] = e.fields["doi"].replace("\\_", "_")
+        if "url" in e.fields:
+            e.fields["url"] = e.fields["url"].replace("\\_", "_")
+    return d
 
 
 def convert_dblp_entries(bib, bib_format=CONDENSED):
@@ -47,8 +37,8 @@ def convert_dblp_entries(bib, bib_format=CONDENSED):
     for entry_str, entry in bib.entries.items():
         # Check for id
         id = dblp_api.paper_id_from_entry(entry)
-        if id is not None:
-            logging.debug(f"Found id '{id}'")
+        if id.namespace is not None:
+            logging.debug(f"Found id '{id.key()}'")
             result_dblp = dblp_api.get_bibtex(id, bib_format=bib_format)
             data = parse_bibtex(result_dblp)
             assert (
@@ -114,7 +104,7 @@ def text_wrap(initial, text, line_length=90):
     return initial + ("\n" + (" " * indentation)).join(lines)
 
 
-def print_fieldstart(f, indentation=15):
+def fieldstart_to_string(f, indentation=15):
     """
     Print start of a bibtex field. For example:
       author    = {
@@ -125,43 +115,51 @@ def print_fieldstart(f, indentation=15):
     return "  " + f + (" " * (indentation - len(f) - 5)) + "= {"
 
 
-def print_persons(group, bib_entry):
-    text = print_fieldstart(group)
+def persons_to_string(group, entry):
+    text = fieldstart_to_string(group)
     sep = " and\n" + (" " * len(text))
 
     def names(p):
         return p.first_names + p.middle_names + p.last_names
-    text += sep.join(" ".join(names(p)) for p in bib_entry.persons[group])
+
+    text += sep.join(" ".join(names(p)) for p in entry.persons[group])
     text += "}"
     return text
 
 
-def print_entry(bib_entry, bib_format="pybtex"):
+def entry_to_string(entry, bib_format="pybtex"):
     """
     Print bibtex entry in a DBLP-simulated format, or in pybtex standard format.
-    :param bib_entry: Pybtex entry.
+    :param entry: Pybtex entry.
     :param bib_format: One of BIB_FORMATS, or 'pybtex'.
     :return: String.
     """
     bib_format in BIB_FORMATS + ["pybtex"]
     if bib_format == "pybtex":
-        authors = ", ".join([str(author) for author in bib_entry.persons["author"]])
+        authors = ", ".join([str(author) for author in entry.persons["author"]])
         book = ""
-        if "booktitle" in bib_entry.fields:
-            book = bib_entry.fields["booktitle"]
-        if "volume" in bib_entry.fields:
-            book += " ({})".format(bib_entry.fields["volume"])
+        if "booktitle" in entry.fields:
+            book = entry.fields["booktitle"]
+        if "volume" in entry.fields:
+            book += " ({})".format(entry.fields["volume"])
         return "{}:\n\t{} {} {}".format(
-            authors, bib_entry.fields["title"], book, bib_entry.fields["year"]
+            authors, entry.fields["title"], book, entry.fields["year"]
         )
     else:
-        text = "@" + bib_entry.type + "{" + bib_entry.key + ",\n"
+        text = "@" + entry.type + "{" + entry.key + ",\n"
         lines = []
         for g in ["author", "editor"]:
-            if g in bib_entry.persons:
-                lines.append(print_persons(g, bib_entry))
-        for f in bib_entry.fields:
-            initial = print_fieldstart(f)
-            lines.append(text_wrap(initial, bib_entry.fields[f]) + "}")
+            if g in entry.persons:
+                lines.append(persons_to_string(g, entry))
+        for f in entry.fields:
+            initial = fieldstart_to_string(f)
+            lines.append(text_wrap(initial, entry.fields[f]) + "}")
         text += ",\n".join(lines) + "\n}"
         return text
+
+
+def bib_to_string(bib, bib_format="pybtex"):
+    text_list = []
+    for e in bib.entries.values():
+        text_list.append(entry_to_string(e, bib_format=bib_format))
+    return "\n\n".join(text_list)

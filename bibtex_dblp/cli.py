@@ -52,7 +52,12 @@ def main(ctx, **kwargs):
 
 @main.command()
 @click.argument("key", nargs=-1)
-@click.option("--reparse", type=click.Choice(["all", "doi.org", "dblp.org", "none"], case_sensitive=False), default="doi.org", help="Reparse and pretty-print the bib-entry when it is retrieved from this source.")
+@click.option(
+    "--reparse",
+    type=click.Choice(["all", "doi.org", "dblp.org", "none"], case_sensitive=False),
+    default="doi.org",
+    help="Reparse and pretty-print the bib-entry when it is retrieved from this source.",
+)
 @click.pass_context
 def get(ctx, key, reparse):
     """Retrieve bib entries by their global keys, and print them.
@@ -78,7 +83,7 @@ $ echo "DBLP:conf/spire/BastMW06\n10.2307/2268281" | dblp get
             k,
             bib_format=ctx.obj.get("format"),
             prefer_doi_org=ctx.obj.get("prefer_doi_org"),
-            reparse=reparse
+            reparse=reparse,
         )
         if b is not None:
             click.echo(b)
@@ -147,7 +152,8 @@ Query the database for a paper title and append the selected bib-entry to refere
 def ask_about_possible_duplicates(bib, query):
     """Check if a match is already found in the existing bib-file."""
     if bib is not None:
-        bib_contents = bibtex_dblp.database.load_from_file(bib)
+        with open(bib, "r") as f:
+            bib_contents = bibtex_dblp.database.parse_bibtex(f.read())
         bib_result = bibtex_dblp.database.search(bib_contents, query)
         if bib_result:
             print(f"Your file {bib} already contains the following, similar matches:")
@@ -231,7 +237,11 @@ Reads from input.bib and writes output.bib
         elif output == "-":
             output = sys.stdout
 
-    bib = bibtex_dblp.database.load_from_file(input)
+    if input != sys.stdin:
+        input = open(input, "r")
+    bib = bibtex_dblp.database.parse_bibtex(input.read())
+    input.close()
+
     bib, no_changes = bibtex_dblp.database.convert_dblp_entries(
         bib, bib_format=ctx.obj.get("format")
     )
@@ -241,7 +251,10 @@ Reads from input.bib and writes output.bib
             f"Updated {no_changes} entries (out of {len(bib.entries)}) from DBLP",
             file=sys.stderr,
         )
-    bibtex_dblp.database.write_to_file(bib, output)
+    text = bibtex_dblp.database.bib_to_string(bib, ctx.obj.get("format"))
+    if output != sys.stdout:
+        output = open(output, "w")
+    print(text, file=output)
     if not ctx.obj.get("quiet"):
         click.echo(f"Written to {output}", file=sys.stderr)
 

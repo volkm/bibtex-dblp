@@ -3,8 +3,8 @@ import re
 
 import requests
 
-import bibtex_dblp.dblp_data
 import bibtex_dblp.database as db
+import bibtex_dblp.dblp_data
 import bibtex_dblp.formats as formats
 
 # DBLP URLs
@@ -82,15 +82,20 @@ def paper_id_from_entry(entry):
     :return: DBLP id, DOI, or None if no could be extracted.
     """
     if "biburl" in entry.fields:
-        match = re.search(r"http(s?)://dblp.org/rec/(.*)\.bib", entry.fields["biburl"])
-        if match:
-            return PaperId(DBLP, match.group(2))
+        patterns = [
+            r"http(s?)://(.*)dblp(.*)/rec/(.*)\.bib",
+            r"http(s?)://(.*)dblp(.*)/rec/bib/(.*)",
+        ]
+        for p in patterns:
+            match = re.search(p, entry.fields["biburl"])
+            if match:
+                return PaperId(DBLP, match.group(4))
 
-    if "doi" in entry.fields and entry.fields["doi"]:
+    if "doi" in entry.fields:
         k = entry.fields["doi"]
-        if len(k) > 0:
-            # weirdly, DBLP escapes "_" with "\_", so we have to remove all backslashes:
-            return PaperId(DOI, k.replace("\\", ""))
+        if k and len(k) > 0:
+            # DBLP escapes "_" with "\_", so we invert that:
+            return PaperId(DOI, k.replace("\\_", "_"))
 
     return paper_id_from_key(entry.key)
 
@@ -121,7 +126,7 @@ def paper_id_from_key(k):
         return PaperId(None, k)
 
 
-def get_bibtex(paper_id, bib_format, prefer_doi_org=False, reparse="none"):
+def get_bibtex(paper_id, bib_format, prefer_doi_org=False, reparse="all"):
     """
     Get bibtex entry in specified format.
     :param id: DBLP id or DOI for entry.
@@ -143,7 +148,10 @@ def get_bibtex(paper_id, bib_format, prefer_doi_org=False, reparse="none"):
             if reparse == "none" or reparse != p:
                 return text
             else:
-                return "\n\n".join(db.print_entry(e, bib_format=bib_format) for e in db.parse_bibtex(text).entries.values())
+                return "\n\n".join(
+                    db.print_entry(e, bib_format=bib_format)
+                    for e in db.parse_bibtex(text).entries.values()
+                )
         else:
             logging.warning(f"Could not retrieve {id} from {r['url']}.")
 

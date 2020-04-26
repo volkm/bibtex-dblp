@@ -3,8 +3,8 @@ from pathlib import Path
 import pytest
 from click.testing import CliRunner
 
-import bibtex_dblp.dblp_api as api
 import bibtex_dblp.database as db
+import bibtex_dblp.dblp_api as api
 import bibtex_dblp.formats as formats
 from bibtex_dblp.cli import main
 
@@ -16,7 +16,9 @@ example_ids = [
 ]
 
 FILES_DIR = Path("tests") / Path("files")
-expected = dict((f, open(FILES_DIR / Path(f"{f}.bib")).read()) for f in formats.BIB_FORMATS)
+expected = dict(
+    (f, open(FILES_DIR / Path(f"{f}.bib")).read()) for f in formats.BIB_FORMATS
+)
 expected_from_doi_org = open(FILES_DIR / Path("doi.org.bib")).read()
 
 
@@ -45,7 +47,7 @@ def same_when_parsed(bibtext1, bibtext2):
     that is, when parsed with pybtex they're the same.
     """
     bib1, bib2 = db.parse_bibtex(bibtext1), db.parse_bibtex(bibtext2)
-    assert(set(bib1.entries.keys()) == set(bib2.entries.keys()))
+    assert set(bib1.entries.keys()) == set(bib2.entries.keys())
     for i in bib1.entries.keys():
         e1, e2 = bib1.entries[i], bib2.entries[i]
         assert e1.type == e2.type

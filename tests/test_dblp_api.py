@@ -1,3 +1,7 @@
+from pathlib import Path
+
+import pytest
+
 import bibtex_dblp.database as db
 import bibtex_dblp.dblp_api as api
 from bibtex_dblp.formats import CONDENSED, CROSSREF, STANDARD
@@ -54,27 +58,101 @@ def test_dblp_bibtex():
     assert "booktitle = {{SPIRE}}" in bibtex_condensed
 
 
-def test_sanitize_key():
-    assert api.paper_id_from_key("DBLP:conf/spire/2006").namespace == api.DBLP
-    assert api.paper_id_from_key("dblp:conf/spire/2006").id == "conf/spire/2006"
-    assert api.paper_id_from_key("conf/spire/2006").namespace == api.DBLP
-    assert api.paper_id_from_key("conf/spire/2006").id == "conf/spire/2006"
-    assert api.paper_id_from_key("doi:10.1007/11880561").namespace == api.DOI
-    assert api.paper_id_from_key("doi:10.1007/11880561").id == "10.1007/11880561"
-    assert api.paper_id_from_key("DOI:10.1007/11880561").namespace == api.DOI
-    assert api.paper_id_from_key("DOI:10.1007/11880561").id == "10.1007/11880561"
-    assert api.paper_id_from_key("10.1007/11880561").namespace == api.DOI
-    assert api.paper_id_from_key("10.1007/11880561").id == "10.1007/11880561"
+KEYS = {
+    "key_from_unknown_namespace": (None, "key_from_unknown_namespace"),
+    "DBLP:conf/spire/BastMW06": (api.DBLP, "conf/spire/BastMW06"),
+    "DbLP:conf/spire/BastMW06": (api.DBLP, "conf/spire/BastMW06"),
+    "conf/spire/BastMW06": (api.DBLP, "conf/spire/BastMW06"),
+    "doi:10.1007/11880561_13": (api.DOI, "10.1007/11880561_13"),
+    "DOi:10.1007/11880561_13": (api.DOI, "10.1007/11880561_13"),
+    "10.1007/11880561_13": (api.DOI, "10.1007/11880561_13"),
+}
 
 
-def test_extract_dblp_id():
-    text = api.get_bibtex("DBLP:conf/spire/2006", bib_format=STANDARD)
+@pytest.mark.parametrize("key, answer", KEYS.items())
+def test_paper_id_from_key(key, answer):
+    namespace, id = answer
+    assert api.paper_id_from_key(key).namespace == namespace
+    assert api.paper_id_from_key(key).id == id
+
+
+FILES_DIR = Path("tests") / Path("files")
+
+
+def example_file(f):
+    return open(FILES_DIR / Path(f + ".bib")).read()
+
+
+def test_paperid_from_entry():
+    text = example_file("standard")
     entries = db.parse_bibtex(text).entries.values()
     assert len(entries) == 1
     [entry] = entries
-    assert entry.fields["doi"] == "10.1007/11880561"
-    assert api.paper_id_from_entry(entry).key() == "DBLP:conf/spire/2006"
+    assert entry.fields["doi"] == "10.1007/11880561_13"
+    assert api.paper_id_from_entry(entry).namespace == api.DBLP
+    assert api.paper_id_from_entry(entry).id == "conf/spire/BastMW06"
     entry.fields["biburl"] = ""
-    assert api.paper_id_from_entry(entry).key() == "doi:10.1007/11880561"
+    assert api.paper_id_from_entry(entry).namespace == api.DOI
+    assert api.paper_id_from_entry(entry).id == "10.1007/11880561_13"
     entry.fields["doi"] = None
-    assert api.paper_id_from_entry(entry).key() == "DBLP:conf/spire/2006"
+    assert api.paper_id_from_entry(entry).namespace == api.DBLP
+    assert api.paper_id_from_entry(entry).id == "conf/spire/BastMW06"
+
+
+ENTRIES = {
+    """@article{blabla,
+    title = {some title},
+    author = {some author and some other author},
+    biburl = {https://nonsense.org/nothing/useful}
+}""": (
+        None,
+        "blabla",
+    ),
+    """@article{10.1007/11880561_13,
+    title = {some title}
+}""": (
+        api.DOI,
+        "10.1007/11880561_13",
+    ),
+    """@article{dOi:10.1007/11880561_13,
+    title = {some title}
+}""": (
+        api.DOI,
+        "10.1007/11880561_13",
+    ),
+    """@article{conf/spire/BastMW06,
+    title = {some title}
+}""": (
+        api.DBLP,
+        "conf/spire/BastMW06",
+    ),
+    """@article{DblP:conf/spire/BastMW06,
+    title = {some title}
+}""": (
+        api.DBLP,
+        "conf/spire/BastMW06",
+    ),
+}
+
+
+pre = "@inproceedings{preserve,\nbiburl={"
+post = "}\n}"
+protocols = ["https://", "http://"]
+domains = ["dblp.org", "dblp.uni-trier.de", "dblp2.uni-trier.de", "dblp.dagstuhl.de"]
+urls = ["/rec/conf/spire/BastMW06.bib", "/rec/bib/conf/spire/BastMW06"]
+
+
+for p in protocols:
+    for d in domains:
+        for u in urls:
+            ENTRIES[pre + p + d + u + post] = (api.DBLP, "conf/spire/BastMW06")
+
+
+@pytest.mark.parametrize("entry, answer", ENTRIES.items())
+def test_paperid_from_entry_cornercases(entry, answer):
+    namespace, id = answer
+    entries = db.parse_bibtex(entry).entries.values()
+    assert len(entries) == 1
+    [entry] = entries
+    assert api.paper_id_from_entry(entry).namespace == namespace
+    assert api.paper_id_from_entry(entry).id == id
