@@ -25,6 +25,29 @@ PROVIDERS = ["dblp.org", "doi.org"]
 sessions = {}
 
 
+def sanitize_reparse(reparse):
+    """
+    If reparse is a list, check that it is a subset of PROVIDERS.
+    Otherwise, it must be a string ("all", "none", or one of PROVIDERS).
+    :param entry: Which to reparse.
+    :return: List of provides that should be reparsed.
+    """
+    if type(reparse) == str:
+        if reparse in PROVIDERS:
+            reparse = [reparse]
+        elif reparse == "none":
+            reparse = []
+        elif reparse == "all":
+            reparse = PROVIDERS
+    for p in reparse:
+        if p not in PROVIDERS:
+            logging.error(
+                "Set provider {p} to force reparsing, but it is not one of {PROVIDERS}"
+            )
+            reparse.remove(p)
+    return reparse
+
+
 class PaperId:
     namespace = None
     id = None
@@ -81,7 +104,7 @@ class PaperId:
 
 
 def is_isbn(i):
-    return len(i) in [10, 13] and re.match('^[0-9]*$', i)
+    return len(i) in [10, 13] and re.match("^[0-9]*$", i)
 
 
 def paper_id_from_entry(entry):
@@ -116,7 +139,9 @@ def paper_id_from_entry(entry):
             if is_isbn(i):
                 return PaperId(ISBN, i)
             else:
-                logging.error(f"ISBN field {k} of entry {entry.key} is not a valid ISBN.")
+                logging.error(
+                    f"ISBN field {k} of entry {entry.key} is not a valid ISBN."
+                )
 
     return paper_id_from_key(entry.key)
 
@@ -159,11 +184,13 @@ def paper_id_from_key(k):
             return PaperId(None, k)
 
 
-def get_bibtex(paper_id, bib_format, prefer_doi_org=False, reparse="all"):
+def get_bibtex(paper_id, bib_format, prefer_doi_org=False, reparse=PROVIDERS):
     """
     Get bibtex entry in specified format.
     :param id: DBLP id or DOI for entry.
     :param bib_format: Format of bibtex export.
+    :param prefer_doi_org: Prefer to retrieve data from doi.org.
+    :param reparse: Directly use server response, or reparse and print it using our pretty-printer.
     :return: Bibtex as binary string.
     """
     if type(paper_id) == str:
@@ -178,15 +205,39 @@ def get_bibtex(paper_id, bib_format, prefer_doi_org=False, reparse="all"):
             resp = s.get(r["url"])
         if resp.status_code == 200:
             text = resp.content.decode("utf-8")
-            if reparse == "none" or reparse != p:
+            if p not in reparse:
                 return text
             else:
                 return "\n\n".join(
-                    db.print_entry(e, bib_format=bib_format)
+                    db.entry_to_string(e, bib_format=bib_format)
                     for e in db.parse_bibtex(text).entries.values()
                 )
         else:
             logging.warning(f"Could not retrieve {id} from {r['url']}.")
+
+
+def get_author(author, bib_format, prefer_doi_org=False, reparse=PROVIDERS):
+    """
+    Get bibtex entries of an author in specified format.
+    :param author: Author's id on DBLP (typically Lastname:Firstname)
+    :param bib_format: Format of bibtex export.
+    :return: Bibtex as binary string.
+    """
+    format_specifier = formats.dblp_author_url_part(bib_format)
+    initial_lastname = author[0].lower()
+    url = f"https://dblp.org/pers/{format_specifier}/{initial_lastname}/{author}"
+    resp = requests.get(url)
+    if resp.status_code == 200:
+        text = resp.content.decode("utf-8")
+        if "dblp.org" not in reparse:
+            return text
+        else:
+            return "\n\n".join(
+                db.entry_to_string(e, bib_format=bib_format)
+                for e in db.parse_bibtex(text).entries.values()
+            )
+    else:
+        logging.warning(f"Could not retrieve {author} data from {url}.")
 
 
 def search_publication(pub_query, max_search_results):

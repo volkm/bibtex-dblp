@@ -1,11 +1,10 @@
-from pathlib import Path
-
 import pytest
 from click.testing import CliRunner
 
 import bibtex_dblp.database as db
 import bibtex_dblp.dblp_api as api
 import bibtex_dblp.formats as formats
+import helpers
 from bibtex_dblp.cli import main
 
 example_ids = [
@@ -15,11 +14,8 @@ example_ids = [
     "10.1007/11880561_13",
 ]
 
-FILES_DIR = Path("tests") / Path("files")
-expected = dict(
-    (f, open(FILES_DIR / Path(f"{f}.bib")).read()) for f in formats.BIB_FORMATS
-)
-expected_from_doi_org = open(FILES_DIR / Path("doi.org.bib")).read()
+expected = dict((f, helpers.example_file(f"{f}.bib")) for f in formats.BIB_FORMATS)
+expected_from_doi_org = helpers.example_file("doi.org.bib")
 
 
 @pytest.mark.parametrize("id", example_ids)
@@ -33,12 +29,7 @@ def test_get_from_dblp_org(id, format):
     runner = CliRunner(mix_stderr=False)
     result = runner.invoke(main, ["--format", format, "get", id, "--reparse", "all"])
     assert result.exit_code == 0
-    output = result.stdout.strip().split("\n")
-    exp = expected[format].strip().split("\n")
-    assert len(output) == len(exp)
-    for i in range(len(output)):
-        if "timestamp" not in output[i]:
-            assert output[i] == exp[i]
+    helpers.compare_line_by_line(result.stdout, expected[format])
 
 
 @pytest.mark.parametrize("id", ["isbn:3-540-45774-7"])
@@ -52,36 +43,9 @@ def test_get_isbn(id, format):
     runner = CliRunner(mix_stderr=False)
     result = runner.invoke(main, ["--format", format, "get", id, "--reparse", "all"])
     assert result.exit_code == 0
-    output = result.stdout.strip().split("\n")
-    exp = open(FILES_DIR / Path(f"3540457747-{format}.bib")).read()
-    exp = exp.strip().split("\n")
-    assert len(output) == len(exp)
-    for i in range(len(output)):
-        if "timestamp" not in output[i]:
-            assert output[i] == exp[i]
-
-
-def same_when_parsed(bibtext1, bibtext2):
-    """
-    Check that two bib-entries (given as text) are semantically the same,
-    that is, when parsed with pybtex they're the same.
-    """
-    bib1, bib2 = db.parse_bibtex(bibtext1), db.parse_bibtex(bibtext2)
-    assert set(bib1.entries.keys()) == set(bib2.entries.keys())
-    for i in bib1.entries.keys():
-        e1, e2 = bib1.entries[i], bib2.entries[i]
-        assert e1.type == e2.type
-        assert e1.key == e2.key
-        assert set(e1.fields.keys()) == set(e2.fields.keys())
-        for f, v1 in e1.fields.items():
-            v2 = e2.fields[f]
-            assert v1 == v2
-        assert set(e1.persons.keys()) == set(e2.persons.keys())
-        for g, g1 in e1.persons.items():
-            g2 = e2.persons[g]
-            g1 = set(str(person) for person in g1)
-            g2 = set(str(person) for person in g2)
-            assert g1 == g2
+    helpers.compare_line_by_line(
+        result.stdout, helpers.example_file(f"3540457747-{format}.bib")
+    )
 
 
 @pytest.mark.parametrize(
@@ -94,7 +58,7 @@ def test_get_doi_org(id):
     runner = CliRunner(mix_stderr=False)
     result = runner.invoke(main, ["--prefer-doi-org", "get", id, "--reparse", "all"])
     assert result.exit_code == 0
-    same_when_parsed(result.stdout, expected_from_doi_org)
+    helpers.compare_parsed(result.stdout, expected_from_doi_org)
 
 
 @pytest.mark.parametrize(

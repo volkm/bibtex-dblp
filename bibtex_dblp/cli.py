@@ -79,6 +79,7 @@ $ echo "DBLP:conf/spire/BastMW06\n10.2307/2268281" | dblp get
 """
     if len(key) == 0:
         key = (k.strip() for k in sys.stdin.readlines())
+    reparse = bibtex_dblp.dblp_api.sanitize_reparse(reparse)
     for k in key:
         b = bibtex_dblp.dblp_api.get_bibtex(
             k,
@@ -88,6 +89,34 @@ $ echo "DBLP:conf/spire/BastMW06\n10.2307/2268281" | dblp get
         )
         if b is not None:
             click.echo(b)
+
+
+@main.command()
+@click.argument("author")
+@click.option(
+    "--reparse",
+    type=click.Choice(["all", "doi.org", "dblp.org", "none"], case_sensitive=False),
+    default="doi.org",
+    help="Reparse and pretty-print the bib-entry when it is retrieved from this source.",
+)
+@click.pass_context
+def get_author(ctx, author, reparse):
+    """Retrieve all bib entries of a DBLP author, and print them.
+
+Example:
+
+\b
+$ dblp get-author Mehlhorn:Kurt
+"""
+    reparse = bibtex_dblp.dblp_api.sanitize_reparse(reparse)
+    b = bibtex_dblp.dblp_api.get_author(
+        author,
+        bib_format=ctx.obj.get("format"),
+        prefer_doi_org=ctx.obj.get("prefer_doi_org"),
+        reparse=reparse,
+    )
+    if b is not None:
+        click.echo(b)
 
 
 @main.command("import")
@@ -159,7 +188,9 @@ def ask_about_possible_duplicates(bib, query):
         if bib_result:
             print(f"Your file {bib} already contains the following, similar matches:")
             for i in range(len(bib_result)):
-                print(f"({i+1})\t{bibtex_dblp.database.print_entry(bib_result[i][0])}")
+                print(
+                    f"({i+1})\t{bibtex_dblp.database.entry_to_string(bib_result[i][0])}"
+                )
             select = click.prompt(
                 "Select the intended publication (0 to search online): ",
                 type=click.IntRange(0, len(bib_result)),
@@ -169,7 +200,7 @@ def ask_about_possible_duplicates(bib, query):
             if select > 0:
                 selected = bib_result[select - 1][0]
                 selected_bib_key = selected.key
-                selected_bib_entry = bibtex_dblp.database.print_entry(selected)
+                selected_bib_entry = bibtex_dblp.database.entry_to_string(selected)
                 return selected_bib_key, selected_bib_entry
     return None, None
 

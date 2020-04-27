@@ -86,6 +86,12 @@ def search(bib, search_string):
 
 
 def text_wrap(initial, text, line_length=90):
+    """
+    This tries to simlate in-field text wrapping used by DBLP.
+    DBLP uses a more complex algorithm than a hard
+    limit on the number of characters per line, but this is
+    close.
+    """
     words = text.split(" ")
     indentation = len(initial)
     actual_length = line_length - indentation
@@ -112,7 +118,7 @@ def fieldstart_to_string(f, indentation=15):
     :param Integer: Total number of characters in return string (will be padded with spaces before '=')
     :return: String.
     """
-    return "  " + f + (" " * (indentation - len(f) - 5)) + "= {"
+    return "  " + f + (" " * (indentation - len(f) - 6)) + " = {"
 
 
 def persons_to_string(group, entry):
@@ -120,7 +126,7 @@ def persons_to_string(group, entry):
     sep = " and\n" + (" " * len(text))
 
     def names(p):
-        return p.first_names + p.middle_names + p.last_names
+        return p.first_names + p.middle_names + p.prelast_names + p.last_names
 
     text += sep.join(" ".join(names(p)) for p in entry.persons[group])
     text += "}"
