@@ -39,7 +39,7 @@ def convert_dblp_entries(bib, bib_format=CONDENSED):
         id = dblp_api.paper_id_from_entry(entry)
         if id.namespace is not None:
             logging.debug(f"Found id '{id.key()}'")
-            result_dblp = dblp_api.get_bibtex(id, bib_format=bib_format)
+            result_dblp = dblp_api.get_paper(id, bib_format=bib_format)
             data = parse_bibtex(result_dblp)
             assert (
                 len(data.entries) <= 2

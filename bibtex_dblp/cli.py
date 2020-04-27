@@ -81,7 +81,7 @@ $ echo "DBLP:conf/spire/BastMW06\n10.2307/2268281" | dblp get
         key = (k.strip() for k in sys.stdin.readlines())
     reparse = bibtex_dblp.dblp_api.sanitize_reparse(reparse)
     for k in key:
-        b = bibtex_dblp.dblp_api.get_bibtex(
+        b = bibtex_dblp.dblp_api.get_paper(
             k,
             bib_format=ctx.obj.get("format"),
             prefer_doi_org=ctx.obj.get("prefer_doi_org"),
@@ -161,7 +161,7 @@ Query the database for a paper title and append the selected bib-entry to refere
         bib_key = ask_to_select_from_search_result(
             query, ctx.obj.get("max_search_results")
         )
-        bib_entry = bibtex_dblp.dblp_api.get_bibtex(
+        bib_entry = bibtex_dblp.dblp_api.get_paper(
             bib_key,
             bib_format=ctx.obj.get("format"),
             prefer_doi_org=ctx.obj.get("prefer_doi_org"),

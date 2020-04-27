@@ -184,7 +184,7 @@ def paper_id_from_key(k):
             return PaperId(None, k)
 
 
-def get_bibtex(paper_id, bib_format, prefer_doi_org=False, reparse=PROVIDERS):
+def get_paper(paper_id, bib_format, prefer_doi_org=False, reparse=PROVIDERS):
     """
     Get bibtex entry in specified format.
     :param id: DBLP id or DOI for entry.

@@ -40,7 +40,7 @@ def test_dblp_bibtex():
     result = search_results.results[1].publication
     assert result.doi == "10.1007/11880561_13"
 
-    bibtex_standard = api.get_bibtex(result.key, bib_format=STANDARD)
+    bibtex_standard = api.get_paper(result.key, bib_format=STANDARD)
     assert (
         "booktitle = {String Processing and Information Retrieval, 13th International Conference,"
         in bibtex_standard
@@ -50,11 +50,11 @@ def test_dblp_bibtex():
         in bibtex_standard
     )
 
-    bibtex_crossref = api.get_bibtex(result.key, bib_format=CROSSREF)
+    bibtex_crossref = api.get_paper(result.key, bib_format=CROSSREF)
     assert "crossref  = {DBLP:conf/spire/2006}," in bibtex_crossref
     assert "editor " in bibtex_crossref
 
-    bibtex_condensed = api.get_bibtex(result.key, bib_format=CONDENSED)
+    bibtex_condensed = api.get_paper(result.key, bib_format=CONDENSED)
     assert "booktitle = {{SPIRE}}" in bibtex_condensed
 
 
