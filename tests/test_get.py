@@ -1,7 +1,6 @@
 import pytest
 from click.testing import CliRunner
 
-import bibtex_dblp.database as db
 import bibtex_dblp.dblp_api as api
 import bibtex_dblp.formats as formats
 import helpers
