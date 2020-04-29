@@ -149,8 +149,8 @@ pipenv run pytest
 
 Run the code cleanup and linter tools ([black](https://black.readthedocs.io/en/stable/), [isort](https://timothycrosley.github.io/isort/), [flake8](https://flake8.pycqa.org/en/latest/)):
 ```
-pipenv run black
-pipenv run isort
+pipenv run black .
+pipenv run isort -y
 pipenv run flake8
 ```
 
