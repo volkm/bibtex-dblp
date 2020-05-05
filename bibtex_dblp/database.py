@@ -40,25 +40,26 @@ def convert_dblp_entries(bib, bib_format=CONDENSED):
         if id.namespace is not None:
             logging.debug(f"Found id '{id.key()}'")
             result_dblp = dblp_api.get_paper(id, bib_format=bib_format)
-            data = parse_bibtex(result_dblp)
-            assert (
-                len(data.entries) <= 2
-                if bib_format is CROSSREF
-                else len(data.entries) == 1
-            )
-            new_entry = data.entries.values()[0]
-            retrieved_entry_key = new_entry.key
-            new_entry.key = entry_str
-            # Set new format
-            bib.entries[entry_str] = new_entry
-            if bib_format is CROSSREF:
-                # Possible second entry
-                for key, entry in data.entries.items():
-                    if key != new_entry.key and key != retrieved_entry_key:
-                        if key not in bib.entries:
-                            bib.entries[key] = entry
-            logging.debug(f"Set new entry for '{entry_str}'")
-            no_changes += 1
+            if result_dblp is not None:
+                data = parse_bibtex(result_dblp)
+                assert (
+                    len(data.entries) <= 2
+                    if bib_format is CROSSREF
+                    else len(data.entries) == 1
+                )
+                new_entry = data.entries.values()[0]
+                retrieved_entry_key = new_entry.key
+                new_entry.key = entry_str
+                # Set new format
+                bib.entries[entry_str] = new_entry
+                if bib_format is CROSSREF:
+                    # Possible second entry
+                    for key, entry in data.entries.items():
+                        if key != new_entry.key and key != retrieved_entry_key:
+                            if key not in bib.entries:
+                                bib.entries[key] = entry
+                logging.debug(f"Set new entry for '{entry_str}'")
+                no_changes += 1
     return bib, no_changes
 
 
