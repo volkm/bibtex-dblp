@@ -213,7 +213,7 @@ def get_paper(paper_id, bib_format, prefer_doi_org=False, reparse=PROVIDERS):
                     for e in db.parse_bibtex(text).entries.values()
                 )
         else:
-            logging.warning(f"Could not retrieve {id} from {r['url']}.")
+            logging.warning(f"Could not retrieve {paper_id.key()} from {r['url']}.")
 
 
 def get_author(author, bib_format, prefer_doi_org=False, reparse=PROVIDERS):
