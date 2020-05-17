@@ -17,7 +17,17 @@ def test_get_author(author, existing_papers):
     """
     runner = CliRunner(mix_stderr=False)
     result = runner.invoke(
-        main, ["--format", "standard", "get-author", author, "--reparse", "all"]
+        main,
+        [
+            "--provider",
+            "dblp.org",
+            "--format",
+            "standard",
+            "get-author",
+            author,
+            "--reparse",
+            "all",
+        ],
     )
     assert result.exit_code == 0
     parsed = db.parse_bibtex(result.stdout)

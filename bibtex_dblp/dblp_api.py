@@ -184,7 +184,7 @@ def paper_id_from_key(k):
             return PaperId(None, k)
 
 
-def get_paper(paper_id, bib_format, prefer_doi_org=False, reparse=PROVIDERS):
+def get_paper(paper_id, bib_format, providers=PROVIDERS, reparse=PROVIDERS):
     """
     Get bibtex entry in specified format.
     :param id: DBLP id or DOI for entry.
@@ -195,7 +195,6 @@ def get_paper(paper_id, bib_format, prefer_doi_org=False, reparse=PROVIDERS):
     """
     if type(paper_id) == str:
         paper_id = paper_id_from_key(paper_id)
-    providers = PROVIDERS if not prefer_doi_org else reversed(PROVIDERS)
     for r in paper_id.get_requests(bib_format=bib_format, providers=providers):
         p = r["provider"]
         s = r["session"]
@@ -216,7 +215,7 @@ def get_paper(paper_id, bib_format, prefer_doi_org=False, reparse=PROVIDERS):
             logging.warning(f"Could not retrieve {paper_id.key()} from {r['url']}.")
 
 
-def get_author(author, bib_format, prefer_doi_org=False, reparse=PROVIDERS):
+def get_author(author, bib_format, reparse=PROVIDERS):
     """
     Get bibtex entries of an author in specified format.
     :param author: Author's id on DBLP (typically Lastname:Firstname)

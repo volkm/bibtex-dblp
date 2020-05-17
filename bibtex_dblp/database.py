@@ -15,7 +15,7 @@ def parse_bibtex(bibtex):
     """
     d = pybtex.database.parse_string(bibtex, bib_format="bibtex")
     # DBLP escapes underscored (uses \_ instead of _).
-    # This *seems* to be harmful when doi's and URLs are used with hyperref, so we remove \
+    # This *seems* to be harmful when DOIs and URLs are used with hyperref, so we remove \
     for e in d.entries.values():
         if "doi" in e.fields:
             e.fields["doi"] = e.fields["doi"].replace("\\_", "_")

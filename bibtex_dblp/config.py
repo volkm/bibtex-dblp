@@ -9,6 +9,7 @@ from pathlib import Path
 import appdirs
 import pkg_resources
 
+import bibtex_dblp.dblp_api as api
 from bibtex_dblp.formats import BIB_FORMATS, CONDENSED
 
 # Application settings
@@ -21,25 +22,51 @@ DEFAULT_CONFIG_FILE = DEFAULT_CONFIG_DIR / "config.json"
 DEFAULT_CONFIG = {
     "format": CONDENSED,
     "max_search_results": 30,
+    "providers": api.PROVIDERS,
 }
 
-## Allowed values for each field. None means everything is allowed.
-ALLOWED_VALUES = {"format": BIB_FORMATS}
+## Allowed values for each field, or function to verify whether allowed. None means no restrictions.
+ALLOWED_VALUES = {
+    "format": BIB_FORMATS,
+    "providers": api.PROVIDERS,
+}
+
+
+def _is_valid_key(key, where=""):
+    if key in DEFAULT_CONFIG.keys():
+        return True
+    else:
+        logging.error(
+            f"{where}Configuration key '{key}' is unknown.\nKnown keys are {', '.join(DEFAULT_CONFIG.keys())}"
+        )
+        return False
+
+
+def _is_valid_key_value(key, value, where=""):
+    if not _is_valid_key(key, where=where) or not isinstance(
+        value, type(DEFAULT_CONFIG[key])
+    ):
+        return False
+    elif key not in ALLOWED_VALUES:
+        return True
+    else:
+        allowed = (
+            type(value) == list and set(value).issubset(set(ALLOWED_VALUES[key]))
+        ) or value in ALLOWED_VALUES[key]
+        if allowed:
+            return True
+        else:
+            logging.error(
+                f"{where}Configuration key '{key}' has value '{value}'.\n However, only these values are allowed: {', '.join(ALLOWED_VALUES[key])}."
+            )
+            return False
 
 
 def _is_valid(cfg, config_file):
     """Checks whether the given cfg is a valid config"""
-    allowed_keys = DEFAULT_CONFIG.keys()
     for key in cfg.keys():
-        if key not in allowed_keys:
-            logging.error(
-                f"{config_file}:\nConfiguration key {key} is unknown.\nKnown keys are {', '.join(allowed_keys)}"
-            )
-            if key in ALLOWED_VALUES and cfg[key] not in ALLOWED_VALUES[key]:
-                logging.error(
-                    f"{config_file}:\nConfiguration key {key} has value {cfg[key]}.\n However, only these values are known: {', '.join(ALLOWED_VALUES[key])}."
-                )
-                return False
+        if not _is_valid_key_value(key, cfg[key], where=f"In {config_file}\n"):
+            return False
     return True
 
 
@@ -48,6 +75,10 @@ def _convert_types(cfg):
     for key in cfg.keys():
         if type(DEFAULT_CONFIG[key]) == int:
             cfg[key] = int(cfg[key])
+        if type(DEFAULT_CONFIG[key]) == list:
+            assert type(cfg[key]) == list
+            t = type(DEFAULT_CONFIG[key][0])
+            cfg[key] = [t(x) for x in cfg[key]]
 
 
 def load(config_file):
@@ -60,6 +91,8 @@ def load(config_file):
             if _is_valid(cfg, config_file):
                 _convert_types(cfg)
                 return cfg
+            else:
+                exit(1)
     except FileNotFoundError:
         pass
     return {}
@@ -89,7 +122,7 @@ class Config:
         elif self.config and key in self.config:
             return self.config[key], f"config file {self.config_file}"
         elif key in DEFAULT_CONFIG:
-            return DEFAULT_CONFIG[key], f"default setting"
+            return DEFAULT_CONFIG[key], "default setting"
         else:
             logging.error(f"{key} is not a valid configuration key.")
             exit(1)

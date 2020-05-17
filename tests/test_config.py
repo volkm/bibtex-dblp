@@ -34,3 +34,19 @@ def test_set_unset_get(kv):
         assert result.exit_code == 0
         j = json.load(open("config.json"))
         assert len(j) == 0
+        result = runner.invoke(
+            main,
+            [
+                "--config-file",
+                "config.json",
+                "config",
+                "--set",
+                "providers",
+                "doi.org,dblp.org",
+            ],
+        )
+        assert result.exit_code == 0
+        j = json.load(open("config.json"))
+        assert len(j["providers"]) == 2
+        assert j["providers"][0] == "doi.org"
+        assert j["providers"][1] == "dblp.org"

@@ -26,7 +26,10 @@ def test_get_from_dblp_org(id, format):
     (even if the bib-entry was parsed with pybtex in between).
     """
     runner = CliRunner(mix_stderr=False)
-    result = runner.invoke(main, ["--format", format, "get", id, "--reparse", "all"])
+    result = runner.invoke(
+        main,
+        ["--provider", "dblp.org", "--format", format, "get", id, "--reparse", "all"],
+    )
     assert result.exit_code == 0
     helpers.compare_line_by_line(result.stdout, expected[format])
 
@@ -40,7 +43,10 @@ def test_get_isbn(id, format):
     (even if the bib-entry was parsed with pybtex in between).
     """
     runner = CliRunner(mix_stderr=False)
-    result = runner.invoke(main, ["--format", format, "get", id, "--reparse", "all"])
+    result = runner.invoke(
+        main,
+        ["--provider", "dblp.org", "--format", format, "get", id, "--reparse", "all"],
+    )
     assert result.exit_code == 0
     helpers.compare_line_by_line(
         result.stdout, helpers.example_file(f"3540457747-{format}.bib")
@@ -55,7 +61,9 @@ def test_get_doi_org(id):
     When retrieving bibtex from doi.org, we only require semantic equivalence.
     """
     runner = CliRunner(mix_stderr=False)
-    result = runner.invoke(main, ["--prefer-doi-org", "get", id, "--reparse", "all"])
+    result = runner.invoke(
+        main, ["--provider", "doi.org", "get", id, "--reparse", "all"]
+    )
     assert result.exit_code == 0
     helpers.compare_parsed(result.stdout, expected_from_doi_org)
 

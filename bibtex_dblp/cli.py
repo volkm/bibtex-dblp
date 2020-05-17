@@ -8,6 +8,7 @@ import click
 
 import bibtex_dblp.config as config
 import bibtex_dblp.database
+import bibtex_dblp.dblp_api as api
 import bibtex_dblp.formats as formats
 
 
@@ -19,16 +20,19 @@ import bibtex_dblp.formats as formats
     "-c", "--config-file", help="Use this config file instead of the default."
 )
 @click.option(
-    "--prefer-doi-org",
-    help="When retrieving bib-entries via their DOI, try to resolve them with doi.org first.",
-    is_flag=True,
-)
-@click.option(
     "-f",
     "--format",
     help="bib-entry format that should be used for output.",
     envvar="BIBTEX_DBLP_FORMAT",
     type=click.Choice(formats.BIB_FORMATS, case_sensitive=False),
+)
+@click.option(
+    "-p",
+    "--provider",
+    multiple=True,
+    help="Query this .bib-file provider. Multiple allowed.",
+    envvar="BIBTEX_DBLP_PROVIDERS",
+    type=click.Choice(api.PROVIDERS),
 )
 @click.pass_context
 def main(ctx, **kwargs):
@@ -47,7 +51,8 @@ def main(ctx, **kwargs):
 
     ctx.obj.set_cmd_line("format", kwargs["format"])
     ctx.obj.set_cmd_line("quiet", kwargs["quiet"])
-    ctx.obj.set_cmd_line("prefer_doi_org", kwargs["prefer_doi_org"])
+    if len(kwargs["provider"]) > 0:
+        ctx.obj.set_cmd_line("providers", kwargs["provider"])
 
 
 @main.command()
@@ -84,7 +89,7 @@ $ echo "DBLP:conf/spire/BastMW06\n10.2307/2268281" | dblp get
         b = bibtex_dblp.dblp_api.get_paper(
             k,
             bib_format=ctx.obj.get("format"),
-            prefer_doi_org=ctx.obj.get("prefer_doi_org"),
+            providers=ctx.obj.get("providers"),
             reparse=reparse,
         )
         if b is not None:
@@ -110,10 +115,7 @@ $ dblp get-author Mehlhorn:Kurt
 """
     reparse = bibtex_dblp.dblp_api.sanitize_reparse(reparse)
     b = bibtex_dblp.dblp_api.get_author(
-        author,
-        bib_format=ctx.obj.get("format"),
-        prefer_doi_org=ctx.obj.get("prefer_doi_org"),
-        reparse=reparse,
+        author, bib_format=ctx.obj.get("format"), reparse=reparse,
     )
     if b is not None:
         click.echo(b)
@@ -164,7 +166,7 @@ Query the database for a paper title and append the selected bib-entry to refere
         bib_entry = bibtex_dblp.dblp_api.get_paper(
             bib_key,
             bib_format=ctx.obj.get("format"),
-            prefer_doi_org=ctx.obj.get("prefer_doi_org"),
+            providers=ctx.obj.get("providers"),
         )
     else:
         bib = None
@@ -331,7 +333,12 @@ Prints the current configuration options and the location of the configuarion fi
 
 $ dblp config --set format standard
 
-This sets the default bib-format to "standard". Can be overridden by using --format explicitly.
+This sets the default bib-format to "standard" and stores it to the configuration file. If set, the configuration can be overridden with the command line option --format.
+
+
+$ dblp config --set providers dblp.org,doi.org
+
+This sets the list of bib-providers. We will query the providers in this order and return the first entry that was successfully returned. Can be overridden by using --provider on the command line.
 
 
 $ dblp config --unset format
@@ -340,12 +347,18 @@ Delete the format setting from the configuration file.
 """
     if get is None and len(set) == 0 and unset is None:
         if len(ctx.obj.config) > 0:
-            click.echo(f"Current configuration as read from {ctx.obj.config_file}:")
+            click.echo(f"Current configuration from {ctx.obj.config_file}:")
             j = json.dumps(ctx.obj.config, indent=2)
+            click.echo(j)
+            click.echo("\nComputed overall configuration:")
+            cfg = config.DEFAULT_CONFIG
+            for key in sorted(cfg.keys()):
+                cfg[key] = ctx.obj.get(key)
+            j = json.dumps(cfg, indent=2)
             click.echo(j)
         else:
             click.echo(
-                f"""No configuration options are set in {config.CONFIG_FILE}.
+                f"""No configuration options are set in {ctx.obj.config_file}.
 Try: dblp config --help"""
             )
     elif get is not None:
@@ -354,6 +367,10 @@ Try: dblp config --help"""
         click.echo(f"The value of {k} is:\n{v}\n[This value was defined in {c}]")
     elif len(set) > 0:
         k, v = set
+        logging.debug(f"Setting key {k} to value {v}...")
+        logging.debug(f"It's currently set to {ctx.obj.get(k)}")
+        if type(ctx.obj.get(k)) == list:
+            v = v.split(",")
         ctx.obj.set(k, v)
         ctx.obj.save()
     elif unset is not None:

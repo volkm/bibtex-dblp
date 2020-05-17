@@ -30,6 +30,63 @@ echo "source ~/.local/share/bibtex-dblp/dblp-complete.zsh" >> ~/.zshrc
 
 # Usage
 
+## Get bibtex entry from a given persistent identifier
+
+Almost all scientific artifacts (publications, books, datasets, programs, etc.) have a persistent identifier by which they can be referred to.
+`bibtex-dblp` knows about three different _namespaces_:
+
+- `DOI` (digital object identifier) is a well-established ISO standard.
+- `ISBN` is an ISO standard to identify books.
+- `DBLP` is a namespace of identifiers that dblp.org assigns to each publication that is listed on their site.
+
+For example, `DBLP:journals/ir/BastMW08` is the DBLP identifier of the publication [Output-sensitive autocompletion search](https://dblp.org/rec/bibtex1/journals/ir/BastMW08), and its DOI is `doi:10.1007/s10791-008-9048-x`.
+The command `dblp get` sends a query to dblp.org (or another bibtex entry provider) to retrieve the bib-entry of a given artifact.
+
+For example:
+```
+dblp get DBLP:journals/ir/BastMW08
+```
+fetches the bib entry of the paper from the url `https://dblp.org/rec/bib1/journals/ir/BastMW08.bib` and writes it to standard output.
+It is also possible to get the same entry via its DOI as follows:
+```
+dblp get doi:10.1007/s10791-008-9048-x
+```
+This will fetch the URL `https://dblp.org/doi/bib1/10.1007/s10791-008-9048-x`.
+For convenience, the `DBLP:` or `doi:` prefixes are not case sensitive. In case the prefix is missing, `get` will guess the namespace as follows: It is DBLP if the given id contains at least two slashes, and it is DOI if there is exactly one slash.
+So both of these commands also work:
+```
+dblp get journals/ir/BastMW08
+dblp get 10.1007/s10791-008-9048-x
+```
+If you want to append an entry to an existing .bib file, simply use this command:
+```
+dblp get DBLP:journals/ir/BastMW08 >> references.bib
+```
+Of course, this does not check for duplicates. `bibtex-dblp` may be extended in the future to add this functionality.
+
+Is is also possible to get multiple entries:
+```
+dblp get DBLP:conf/spire/BastMW06 10.2307/2268281
+```
+For scripting purposes, the entries can also be read from standard input (one per line):
+```
+echo "DBLP:conf/spire/BastMW06\n10.2307/2268281" | dblp get
+```
+ISBNs (as far as they're available on dblp.org) are also supported:
+```
+dblp get ISBN:3-540-45774-7
+```
+
+
+## Get all entries by a given author
+
+For example,
+```
+dblp get-author Mehlhorn:Kurt
+```
+fetches and prints all of Kurt Mehlhorn's publications that are listed on dblp.org.
+
+
 ## Importing new publications from DBLP
 The command `dblp import` searches for a publication on DBLP and adds the corresponding bibtex entry to a local bibliography.
 
@@ -50,7 +107,7 @@ dblp import --help
 
 ## Configuration
 
-The DBLP server offers each bib-entry in three different formats: condensed ([example](https://dblp.org/rec/bibtex0/conf/spire/BastMW06)), standard ([example](https://dblp.org/rec/bibtex1/conf/spire/BastMW06)), crossref ([example](https://dblp.org/rec/bibtex2/conf/spire/BastMW06)).
+The DBLP server offers each bib-entry in three different formats: condensed ([example](https://dblp.org/rec/bibtex0/conf/spire/BastMW06)), standard ([example](https://dblp.org/rec/bibtex1/conf/spire/BastMW06)), crossref ([example](https://dblp.org/rec/bibtex2/conf/spire/BastMW06)). The format can be chosen on the command line:
 The default setting of `dblp` is condensed, but some users prefer other formats.
 To change the default format, `dblp` offers three different mechanisms:
 
@@ -73,6 +130,18 @@ dblp --format standard import [...]
 ```
 If the `--format` command line option is used, its setting takes precedence. Note that `--format` must be specified _before_ the command (such as `import`).
 
+### Further configuration settings
+
+By default, when given a DOI, `bibtex-dblp` queries dblp.org first, but if the entry isn't found there, it tries to query the entry using an HTTP request to doi.org. (On the command line, this is achieved with `curl -sLH "Accept: application/x-bibtex; charset=utf-8" https://doi.org/10.1007/11880561_13`).
+
+While the entries on dblp.org are well-maintained and consistent, the entries from doi.org vary in quality, sometimes only listing a subset of the authors or missing some other information. If it is not desired, the doi.org provider can be turned off:
+```
+dblp config --set providers dblp.org
+```
+Or, maybe you want to query doi.org first:
+```
+dblp config --set providers doi.org,dblp.org
+```
 
 ## Converting between DBLP formats
 The command `dblp convert` converts the complete bibliography to the selected DBLP format (condensed, standard, crossref).
@@ -87,47 +156,6 @@ All other entries are left unchanged.
 For more options see:
 ```
 dblp convert --help
-```
-
-## Get bibtex entry from given global id
-
-Every publication listed on DBLP has a unique DBLP id (for example [DBLP:journals/ir/BastMW08](https://dblp.org/rec/bibtex1/journals/ir/BastMW08)).
-Most modern peer-reviewed publications have a DOI (for example, 10.1007/s10791-008-9048-x).
-The command `dblp get` finds a bibtex entry for the given DBLP id or DOI.
-
-For example:
-```
-dblp get DBLP:journals/ir/BastMW08
-```
-fetches the bib entry of the paper [Output-sensitive autocompletion search](https://dblp.org/rec/bibtex1/journals/ir/BastMW08) from the url `https://dblp.org/rec/bib1/journals/ir/BastMW08.bib` and writes it to standard output.
-It is also possible to get the same entry via its DOI as follows:
-```
-dblp get doi:10.1007/s10791-008-9048-x
-```
-This will fetch the URL `https://dblp.org/doi/bib1/10.1007/s10791-008-9048-x`.
-For convenience, the `DBLP:` or `doi:` prefixes are not case sensitive. In case the prefix is missing, `get` will assume that the key is a DBLP id if it contains at least two slashes, and it assumes that it is a DOI if there is exactly one slash.
-So both of these commands also work:
-```
-dblp get journals/ir/BastMW08
-dblp get 10.1007/s10791-008-9048-x
-```
-If you want to append an entry to an existing .bib file, simply use this command:
-```
-dblp get DBLP:journals/ir/BastMW08 >> references.bib
-```
-(This does not check for duplicates.)
-
-Is is also possible to get multiple entries:
-```
-dblp --format standard get DBLP:conf/spire/BastMW06 10.2307/2268281
-```
-For scripting purposes, the entries can also be read from standard input (one per line):
-```
-echo "DBLP:conf/spire/BastMW06\n10.2307/2268281" | dblp get
-```
-ISBNs (as far as they're available on dblp.org) are also supported:
-```
-dblp get ISBN:3-540-45774-7
 ```
 
 # Development
