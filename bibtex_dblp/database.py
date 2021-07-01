@@ -47,7 +47,7 @@ def convert_dblp_entries(bib, bib_format=CONDENSED):
                     if bib_format is CROSSREF
                     else len(data.entries) == 1
                 )
-                new_entry = data.entries.values()[0]
+                new_entry = list(data.entries.values())[0]
                 retrieved_entry_key = new_entry.key
                 new_entry.key = entry_str
                 # Set new format
