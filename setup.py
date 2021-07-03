@@ -1,9 +1,4 @@
-import os
 from setuptools import setup
-
-# Get the long description from the README file
-with open(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'README.md')) as f:
-    long_description = f.read()
 
 setup(
     name="bibtex-dblp",
@@ -14,25 +9,25 @@ setup(
     maintainer_email="matthias.volk@cs.rwth-aachen.de",
     url="https://github.com/volkm/bibtex-dblp",
     description="Create and revise bibtex entries from DBLP.",
-    long_description=long_description,
-    long_description_content_type='text/markdown',
-
+    long_description=open("README.md").read(),
+    long_description_content_type="text/markdown",
     packages=["bibtex_dblp"],
-    scripts=[
-        'bin/convert_dblp.py',
-        'bin/import_dblp.py'
+    entry_points={"console_scripts": ["dblp = bibtex_dblp.cli:main"]},
+    install_requires=["Click", "pybtex", "requests"],
+    setup_requires=["pytest-runner"],
+    tests_require=["pytest"],
+    extras_require={"dev": ["flake8", "black", "isort", "pytest", "mypy"]},
+    python_requires=">=3",
+    zip_safe=False,
+    platforms="any",
+    classifiers=[
+        "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+        "Operating System :: OS Independent",
+        "Natural Language :: English",
+        "Programming Language :: Python :: 3",
+        "Topic :: Utilities",
+        "Intended Audience :: Developers",
+        "Intended Audience :: Education",
+        "Intended Audience :: Science/Research",
     ],
-    entry_points={
-        'console_scripts': [
-            'import_dblp = import_dblp:main',
-            'convert_dblp = convert_dblp:main',
-        ],
-    },
-    install_requires=[
-        "requests",
-        "pybtex"
-    ],
-    setup_requires=['pytest-runner'],
-    tests_require=['pytest'],
-    python_requires='>=3',
 )

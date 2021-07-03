@@ -11,6 +11,6 @@ def search_score(input_string, search_query):
     score = 0
     search_words = search_query.split()
     for word in search_words:
-        if re.search(r'\b{}\b'.format(word), input_string, re.IGNORECASE) is not None:
+        if re.search(r"\b{}\b".format(word), input_string, re.IGNORECASE) is not None:
             score += 1
     return score / len(search_words)
