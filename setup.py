@@ -30,7 +30,8 @@ setup(
     },
     install_requires=[
         "requests",
-        "pybtex"
+        "pybtex",
+        "pyperclip"  # Copy to clipboard
     ],
     setup_requires=['pytest-runner'],
     tests_require=['pytest'],

@@ -5,6 +5,7 @@ Import entry from DBLP according to given search input.
 
 import argparse
 import logging
+import pyperclip
 
 import bibtex_dblp.config
 import bibtex_dblp.database
@@ -81,7 +82,8 @@ def main():
     else:
         logging.info("Selected bibtex entry:\n")
         print(pub_bibtex)
-    logging.info("Use '{}' to cite it.".format(publication.cite_key()))
+    pyperclip.copy(publication.cite_key())
+    logging.info("Copied cite key '{}' to clipboard.".format(publication.cite_key()))
 
 
 if __name__ == "__main__":
