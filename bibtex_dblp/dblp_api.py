@@ -20,11 +20,11 @@ class BibFormat(Enum):
         :return:
         """
         if self is BibFormat.condensed:
-            return "bib0"
+            return "0"
         elif self is BibFormat.standard:
-            return "bib1"
+            return "1"
         elif self is BibFormat.crossref:
-            return "bib2"
+            return "2"
         else:
             assert False
 
@@ -39,7 +39,7 @@ def extract_dblp_id(entry):
     :return: DBLP id or None if no could be extracted.
     """
     if "biburl" in entry.fields:
-        match = re.search(r"http(s?)://dblp.org/rec/bib/(.*)", entry.fields["biburl"])
+        match = re.search(r"http(s?)://dblp.org/rec/(.*).bib", entry.fields["biburl"])
         assert match
         return match.group(2)
     else:

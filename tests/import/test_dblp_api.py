@@ -21,7 +21,7 @@ def test_search_publication():
             assert result.ee == 'https://doi.org/10.1007/s10791-008-9048-x'
             assert result.url == 'https://dblp.org/rec/journals/ir/BastMW08'
             authors = [author.name for author in result.authors]
-            assert 'H. Bast 0001' in authors
+            assert 'Hannah Bast' in authors
             assert 'Christian Worm Mortensen' in authors
             assert 'Ingmar Weber' in authors
         else:
