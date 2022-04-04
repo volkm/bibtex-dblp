@@ -49,15 +49,23 @@ def convert_dblp_entries(bib, bib_format=dblp_api.BibFormat.condensed):
             result_dblp = dblp_api.get_bibtex(dblp_id, bib_format=bib_format)
             data = parse_bibtex(result_dblp)
             assert len(data.entries) <= 2 if bib_format is dblp_api.BibFormat.crossref else len(data.entries) == 1
-            new_entry = data.entries[entry_str]
-            # Set new format
-            bib.entries[entry_str] = new_entry
-            if bib_format is dblp_api.BibFormat.crossref:
-                # Possible second entry
-                for key, entry in data.entries.items():
-                    if key != entry_str:
-                        if key not in bib.entries:
-                            bib.entries[key] = entry
+            if entry_str not in data.entries:
+                # DBLP key is not used as bibtex key -> remember DBLP key
+                key = next(iter(data.entries))
+                new_entry = data.entries[key]
+                new_entry.fields['biburl'] = entry.fields['biburl']
+                bib.entries[entry_str] = new_entry
+
+            else:
+                new_entry = data.entries[entry_str]
+                # Set new format
+                bib.entries[entry_str] = new_entry
+                if bib_format is dblp_api.BibFormat.crossref:
+                    # Possible second entry
+                    for key, entry in data.entries.items():
+                        if key != entry_str:
+                            if key not in bib.entries:
+                                bib.entries[key] = entry
             logging.debug("Set new entry for '{}'".format(entry_str))
             no_changes += 1
     return bib, no_changes
