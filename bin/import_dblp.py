@@ -79,11 +79,12 @@ def main():
         with open(args.bib, "a") as f:
             f.write(pub_bibtex)
         logging.info("Bibtex file appended to {}.".format(args.bib))
+        pyperclip.copy(publication.cite_key())
+        logging.info("Copied cite key '{}' to clipboard.".format(publication.cite_key()))
     else:
-        logging.info("Selected bibtex entry:\n")
-        print(pub_bibtex)
-    pyperclip.copy(publication.cite_key())
-    logging.info("Copied cite key '{}' to clipboard.".format(publication.cite_key()))
+        pyperclip.copy(pub_bibtex)
+        logging.info("Selected bibtex entry:\n{}".format(pub_bibtex))
+        logging.info("Copied selected bibtex entry to clipboard.")
 
 
 if __name__ == "__main__":
