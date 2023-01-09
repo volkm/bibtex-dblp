@@ -45,3 +45,8 @@ def test_dblp_bibtex():
 
     bibtex_condensed = bibtex_dblp.dblp_api.get_bibtex(result.key, bib_format=BibFormat.condensed)
     assert "booktitle = {{SPIRE}}" in bibtex_condensed
+    assert "doi" not in bibtex_condensed
+
+    bibtex_condensed_doi = bibtex_dblp.dblp_api.get_bibtex(result.key, bib_format=BibFormat.condensed_doi)
+    assert "booktitle = {{SPIRE}}" in bibtex_condensed_doi
+    assert "doi       = {10.1007/11880561\_13}" in bibtex_condensed_doi

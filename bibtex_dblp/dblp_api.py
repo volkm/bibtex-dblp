@@ -13,6 +13,7 @@ class BibFormat(Enum):
     condensed = 'condensed'
     standard = 'standard'
     crossref = 'crossref'
+    condensed_doi = 'condensed_doi'
 
     def bib_url(self):
         """
@@ -25,6 +26,8 @@ class BibFormat(Enum):
             return "1"
         elif self is BibFormat.crossref:
             return "2"
+        elif self is BibFormat.condensed_doi:
+            return "0"
         else:
             assert False
 
@@ -56,9 +59,19 @@ def get_bibtex(dblp_id, bib_format=BibFormat.condensed):
     :param bib_format: Format of bibtex export (see BibFormat).
     :return: Bibtex as binary string.
     """
+    if bib_format == BibFormat.condensed_doi:
+        resp = requests.get(config.DBLP_PUBLICATION_BIBTEX.format(key=dblp_id, bib_format=BibFormat.standard.bib_url()))
+        assert resp.status_code == 200
+        lines = resp.content.decode('utf-8').split('\n')
+        keep_lines = [line for line in lines if line.startswith("  doi")]
+
     resp = requests.get(config.DBLP_PUBLICATION_BIBTEX.format(key=dblp_id, bib_format=bib_format.bib_url()))
     assert resp.status_code == 200
-    return resp.content.decode('utf-8')
+    bibtex = resp.content.decode('utf-8')
+
+    if bib_format == BibFormat.condensed_doi and keep_lines:
+        bibtex = bibtex[:-4] + ",\n" + ("\n".join(keep_lines))[:-1] + bibtex[-4:]
+    return bibtex
 
 
 def search_publication(pub_query, max_search_results=config.MAX_SEARCH_RESULTS):
