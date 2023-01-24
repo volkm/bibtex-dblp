@@ -84,6 +84,8 @@ def search(bib, search_string):
         if 'author' in entry.persons:
             authors = entry.persons['author']
             author_names = " and ".join([str(author) for author in authors])
+        elif 'organization' in entry.fields:
+            author_names = str(entry.fields["organization"])
         else:
             author_names = ""
         inp = "{}:{}".format(author_names, entry.fields["title"])
@@ -100,7 +102,12 @@ def print_entry(bib_entry):
     :param bib_entry: Pybtex entry.
     :return: String.
     """
-    authors = ", ".join([str(author) for author in bib_entry.persons['author']])
+    if 'author' in bib_entry.persons:
+        authors = ", ".join([str(author) for author in bib_entry.persons['author']])
+    elif 'organization' in bib_entry.fields:
+        authors = str(bib_entry.fields["organization"])
+    else:
+        authors = ""
     book = ""
     if 'booktitle' in bib_entry.fields:
         book = bib_entry.fields['booktitle']
