@@ -19,6 +19,7 @@ def main():
 
     parser.add_argument('infile', help='Input bibtex file', type=str)
     parser.add_argument('--out', '-o', help='Output bibtex file. If no output file is given, the input file will be overwritten.', type=str, default=None)
+    parser.add_argument('--format', '-f', help='DBLP format type to convert into', type=BibFormat, choices=list(BibFormat), default=BibFormat.condensed)
     parser.add_argument('--max-results', help="Maximal number of search results to display.", type=int, default=bibtex_dblp.config.MAX_SEARCH_RESULTS)
 
     parser.add_argument('--verbose', '-v', help='print more output', action="store_true")
@@ -26,7 +27,7 @@ def main():
 
     logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.DEBUG if args.verbose else logging.INFO)
     outfile = args.infile if args.out is None else args.out
-    bib_format = BibFormat.standard
+    bib_format = args.format
     max_search_results = args.max_results
 
     # Load bibliography
