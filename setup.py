@@ -19,13 +19,15 @@ setup(
 
     packages=["bibtex_dblp"],
     scripts=[
+        'bin/import_dblp.py',
         'bin/convert_dblp.py',
-        'bin/import_dblp.py'
+        'bin/update_from_dblp.py',
     ],
     entry_points={
         'console_scripts': [
             'import_dblp = import_dblp:main',
             'convert_dblp = convert_dblp:main',
+            'update_from_dblp = update_from_dblp:main',
         ],
     },
     install_requires=[
