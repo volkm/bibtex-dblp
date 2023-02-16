@@ -3,7 +3,8 @@ name: Build and Test
 on: [push]
 
 jobs:
-  build:
+  BuildTest:
+    name: Test (Python ${{ matrix.python-version }})
 
     runs-on: ubuntu-latest
     strategy:
