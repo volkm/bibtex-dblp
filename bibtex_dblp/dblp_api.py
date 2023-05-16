@@ -42,13 +42,15 @@ def extract_dblp_id(entry):
     :return: DBLP id or None if no could be extracted.
     """
     if "biburl" in entry.fields:
+        # Try to get Id from biburl
         match = re.search(r"http(s?)://dblp.org/rec/(.*).bib", entry.fields["biburl"])
-        assert match
-        return match.group(2)
-    else:
-        key = entry.key
-        if key.startswith("DBLP:"):
-            return key[5:]
+        if match:
+            return match.group(2)
+
+    # Try to get Id from entry name
+    key = entry.key
+    if key.startswith("DBLP:"):
+        return key[5:]
     return None
 
 
