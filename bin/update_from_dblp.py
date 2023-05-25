@@ -5,6 +5,7 @@ Import entry from DBLP according to given search input.
 
 import argparse
 import logging
+import requests
 from copy import deepcopy
 
 import bibtex_dblp.config
@@ -18,9 +19,13 @@ def main():
     parser = argparse.ArgumentParser(description='Update entries in bibliography via DBLP.')
 
     parser.add_argument('infile', help='Input bibtex file', type=str)
-    parser.add_argument('--out', '-o', help='Output bibtex file. If no output file is given, the input file will be overwritten.', type=str, default=None)
-    parser.add_argument('--format', '-f', help='DBLP format type to convert into', type=BibFormat, choices=list(BibFormat), default=BibFormat.condensed)
-    parser.add_argument('--max-results', help="Maximal number of search results to display.", type=int, default=bibtex_dblp.config.MAX_SEARCH_RESULTS)
+    parser.add_argument('--out', '-o',
+                        help='Output bibtex file. If no output file is given, the input file will be overwritten.',
+                        type=str, default=None)
+    parser.add_argument('--format', '-f', help='DBLP format type to convert into', type=BibFormat,
+                        choices=list(BibFormat), default=BibFormat.condensed)
+    parser.add_argument('--max-results', help="Maximal number of search results to display.", type=int,
+                        default=bibtex_dblp.config.MAX_SEARCH_RESULTS)
 
     parser.add_argument('--verbose', '-v', help='print more output', action="store_true")
     args = parser.parse_args()
@@ -43,12 +48,23 @@ def main():
             continue
 
         authors = ", ".join([str(author) for author in entry.persons['author']])
-        search_words = "{} {}".format(authors, entry.fields['title'])
+        title = entry.fields['title']
+        search_words = "{} {}".format(authors, title)
         logging.info("Search: {}".format(search_words))
-        search_results = bibtex_dblp.dblp_api.search_publication(search_words, max_search_results=max_search_results)
+        try:
+            search_results = bibtex_dblp.dblp_api.search_publication(search_words,
+                                                                     max_search_results=max_search_results)
+        except requests.exceptions.HTTPError as err:
+            logging.warning("Search request returned error {}. Skipped this entry.".format(err))
+            continue
         if search_results.total_matches == 0:
             # Try once again with only the title
-            search_results = bibtex_dblp.dblp_api.search_publication(entry.fields['title'], max_search_results=max_search_results)
+            logging.debug("Search: {}".format(title))
+            try:
+                search_results = bibtex_dblp.dblp_api.search_publication(title, max_search_results=max_search_results)
+            except requests.exceptions.HTTPError as err:
+                logging.warning("Search request returned error {}. Skipped this entry.".format(err))
+                continue
 
             # No luck -> try next entry
             if search_results.total_matches == 0:
@@ -63,7 +79,8 @@ def main():
             print("({})\t{}".format(i + 1, result.publication))
 
         # Let user select correct publication
-        select = bibtex_dblp.io.get_user_number("Select the intended publication (0 to abort): ", 0, search_results.total_matches)
+        select = bibtex_dblp.io.get_user_number("Select the intended publication (0 to abort): ", 0,
+                                                search_results.total_matches)
         if select == 0:
             print("Cancelled.")
             continue
