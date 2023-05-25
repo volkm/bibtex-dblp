@@ -5,13 +5,14 @@ Import entry from DBLP according to given search input.
 
 import argparse
 import logging
-import requests
 from copy import deepcopy
+
+import requests
 
 import bibtex_dblp.config
 import bibtex_dblp.database
-import bibtex_dblp.io
 import bibtex_dblp.dblp_api
+import bibtex_dblp.io
 from bibtex_dblp.dblp_api import BibFormat
 
 

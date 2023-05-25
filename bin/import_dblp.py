@@ -5,23 +5,30 @@ Import entry from DBLP according to given search input.
 
 import argparse
 import logging
+
 import pyperclip
 
 import bibtex_dblp.config
 import bibtex_dblp.database
-import bibtex_dblp.io
 import bibtex_dblp.dblp_api
+import bibtex_dblp.io
 from bibtex_dblp.dblp_api import BibFormat
 
 
 def main():
     parser = argparse.ArgumentParser(description='Import entry from DBLP according to given search input from cli.')
 
-    parser.add_argument('--query', '-q', help='The query to search for the publication. If none is given the query is obtained from CLI input.', type=str, default=None)
-    parser.add_argument('--bib', '-b', help='Bibtex file where the imported entry will be appended. If no bibtex file is given, the bibtex is printed to the CLI.', type=str,
+    parser.add_argument('--query', '-q',
+                        help='The query to search for the publication. If none is given the query is obtained from CLI input.',
+                        type=str, default=None)
+    parser.add_argument('--bib', '-b',
+                        help='Bibtex file where the imported entry will be appended. If no bibtex file is given, the bibtex is printed to the CLI.',
+                        type=str,
                         default=None)
-    parser.add_argument('--format', '-f', help='DBLP format type to convert into.', type=BibFormat, choices=list(BibFormat), default=BibFormat.condensed)
-    parser.add_argument('--max-results', help="Maximal number of search results to display.", type=int, default=bibtex_dblp.config.MAX_SEARCH_RESULTS)
+    parser.add_argument('--format', '-f', help='DBLP format type to convert into.', type=BibFormat,
+                        choices=list(BibFormat), default=BibFormat.condensed)
+    parser.add_argument('--max-results', help="Maximal number of search results to display.", type=int,
+                        default=bibtex_dblp.config.MAX_SEARCH_RESULTS)
 
     parser.add_argument('--verbose', '-v', help='print more output', action="store_true")
     args = parser.parse_args()
@@ -47,9 +54,10 @@ def main():
             print("The bibliography already contains the following matches:")
             for i in range(len(bib_result)):
                 print("({})\t{}".format(i + 1, bibtex_dblp.database.print_entry(bib_result[i][0])))
-            select = bibtex_dblp.io.get_user_number("Select the intended publication (0 to search online): ", 0, len(bib_result))
+            select = bibtex_dblp.io.get_user_number("Select the intended publication (0 to search online): ", 0,
+                                                    len(bib_result))
             if select > 0:
-                selected_entry = bib_result[select-1][0]
+                selected_entry = bib_result[select - 1][0]
                 logging.info("Selected bibtex entry:\n")
                 print(bibtex_dblp.database.print_entry(selected_entry))
                 logging.info("Use '{}' to cite it.".format(selected_entry.key))
@@ -68,7 +76,8 @@ def main():
         print("({})\t{}".format(i + 1, result.publication))
 
     # Let user select correct publication
-    select = bibtex_dblp.io.get_user_number("Select the intended publication (0 to abort): ", 0, search_results.total_matches)
+    select = bibtex_dblp.io.get_user_number("Select the intended publication (0 to abort): ", 0,
+                                            search_results.total_matches)
     if select == 0:
         print("Cancelled.")
         exit(1)
