@@ -1,5 +1,6 @@
-from enum import Enum
 import re
+from enum import Enum
+
 import requests
 
 import bibtex_dblp.config as config
@@ -92,6 +93,12 @@ def get_bibtex(dblp_id, bib_format=BibFormat.condensed):
             doi = keep_lines[0][:-1]  # Remove comma
             # Insert into bibtex
             bibtex = bibtex[:-4] + ",\n" + doi + bibtex[-4:]
+
+    if bib_format == BibFormat.condensed or bib_format == BibFormat.condensed_doi:
+        # Also insert biburl into bibtex
+        assert "biburl" not in bibtex
+        biburl = "  biburl = {{https://dblp.org/rec/{}.bib}}".format(dblp_id)
+        bibtex = bibtex[:-4] + ",\n" + biburl + bibtex[-4:]
 
     return bibtex
 
