@@ -7,11 +7,11 @@ with open(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'README.md'))
 
 setup(
     name="bibtex-dblp",
-    version="0.5",
+    version="0.9",
     author="M. Volk",
-    author_email="matthias.volk@cs.rwth-aachen.de",
+    author_email="m.volk@utwente.nl",
     maintainer="M. Volk",
-    maintainer_email="matthias.volk@cs.rwth-aachen.de",
+    maintainer_email="m.volk@utwente.nl",
     url="https://github.com/volkm/bibtex-dblp",
     description="Create and revise bibtex entries from DBLP.",
     long_description=long_description,

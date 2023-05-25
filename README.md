@@ -1,4 +1,8 @@
 # bibtex-dblp
+[![Build Status](https://github.com/volkm/bibtex-dblp/workflows/Build%20and%20Test/badge.svg)](https://github.com/volkm/bibtex-dblp/actions)
+[![GitHub release](https://img.shields.io/github/release/volkm/bibtex-dblp.svg)](https://github.com/volkm/bibtex-dblp/releases/)
+[![PyPi](https://img.shields.io/pypi/v/bibtex-dblp)](https://pypi.org/project/bibtex-dblp/)
+
 Create and revise bibtex entries from [DBLP](https://dblp.uni-trier.de/).
 
 ## Dependencies
