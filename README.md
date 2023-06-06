@@ -55,7 +55,7 @@ The script `bin/update_from_dblp.py` updates the entries in an existing bibliogr
 
 Usage:
 ```
-convert_dblp INPUT_BIB [--out OUTPUT_BIB] [--format FORMAT]
+update_from_dblp INPUT_BIB [--out OUTPUT_BIB] [--format FORMAT]
 ```
 For each bibtex entry without a DBLP id, the scripts searches DBLP for a possible match.
 The user can select the correct entry from a list of possible matches and the bibliography is updated accordingly.
