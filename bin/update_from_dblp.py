@@ -48,8 +48,14 @@ def main():
         if dblp_id is not None:
             continue
 
-        authors = ", ".join([str(author) for author in entry.persons['author']])
-        title = entry.fields['title']
+        if 'author' in entry.persons:
+            authors = ", ".join([str(author) for author in entry.persons['author']])
+        else:
+            authors = ""
+        if 'title' in entry.fields:
+            title = entry.fields['title']
+        else:
+            title = ""
         search_words = "{} {}".format(authors, title)
         logging.info("Search: {}".format(search_words))
         try:
