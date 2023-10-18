@@ -47,7 +47,12 @@ def convert_dblp_entries(bib, bib_format=dblp_api.BibFormat.condensed):
         dblp_id = dblp_api.extract_dblp_id(entry)
         if dblp_id is not None:
             logging.debug("Found DBLP id '{}'".format(dblp_id))
-            result_dblp = dblp_api.get_bibtex(dblp_id, bib_format=bib_format)
+            try:
+                result_dblp = dblp_api.get_bibtex(dblp_id, bib_format=bib_format)
+            except dblp_api.InvalidDblpIdException as err:
+                logging.warning(str(err) + ". Skipping this entry.")
+                continue
+
             data = parse_bibtex(result_dblp)
             assert len(data.entries) <= 2 if bib_format is dblp_api.BibFormat.crossref else len(data.entries) == 1
             if entry_str not in data.entries:
