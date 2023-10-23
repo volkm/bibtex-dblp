@@ -30,13 +30,15 @@ def main():
                         default=bibtex_dblp.config.MAX_SEARCH_RESULTS)
 
     parser.add_argument('--verbose', '-v', help='print more output', action="store_true")
+    parser.add_argument('--semiauto', '-a', help='enable semi-auto mode', action="store_true")
+
     args = parser.parse_args()
 
     logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.DEBUG if args.verbose else logging.INFO)
     outfile = args.infile if args.out is None else args.out
     bib_format = args.format
     max_search_results = args.max_results
-
+    semiauto=args.semiauto;
     # Load bibliography
     bib = bibtex_dblp.database.load_from_file(args.infile)
     new_entries = deepcopy(bib.entries)
@@ -44,7 +46,8 @@ def main():
     # Iterate over all entries
     no_changes = 0
     for entry_str, entry in bib.entries.items():
-        time.sleep(4);
+        if(semiauto):
+            time.sleep(10);
 
         # Check for id
         dblp_id = bibtex_dblp.dblp_api.extract_dblp_id(entry)
@@ -93,14 +96,18 @@ def main():
         for i in range(len(search_results.results)):
             result = search_results.results[i]
             print("({})\t{}".format(i + 1, result.publication))
-        if(len(val_results)>1):
-        # Let user select correct publication
-            select = bibtex_dblp.io.get_user_number("Select the intended publication (0 to abort): ", 0,
-                                                    search_results.total_matches)
-        elif(len(val_results)==0):
-            select=1;
+        if(semiauto):
+            if(len(val_results)>1):
+            # Let user select correct publication
+                select = bibtex_dblp.io.get_user_number("Select the intended publication (0 to abort): ", 0,
+                                                        search_results.total_matches)
+            elif(len(val_results)==0):
+                select=1;
+            else:
+                select=val_results[0];
         else:
-            select=val_results[0];
+             select = bibtex_dblp.io.get_user_number("Select the intended publication (0 to abort): ", 0,
+                                                        search_results.total_matches);
 
         if select == 0:
             print("Cancelled.")
