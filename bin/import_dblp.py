@@ -58,9 +58,8 @@ def main():
                                                     len(bib_result))
             if select > 0:
                 selected_entry = bib_result[select - 1][0]
-                logging.info("Selected bibtex entry:\n")
-                print(bibtex_dblp.database.print_entry(selected_entry))
-                logging.info("Use '{}' to cite it.".format(selected_entry.key))
+                pyperclip.copy(selected_entry.key)
+                logging.info("Copied cite key '{}' to clipboard.".format(selected_entry.key))
                 exit(0)
 
     search_results = bibtex_dblp.dblp_api.search_publication(search_words, max_search_results=max_search_results)
