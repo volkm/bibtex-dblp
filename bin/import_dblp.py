@@ -46,6 +46,10 @@ def main():
     else:
         search_words = bibtex_dblp.io.get_user_input("Give the publication title to search for: ")
 
+    if not search_words:
+        print("No search terms. Cancelled.")
+        exit(1)
+
     # Search for publications
     if bib is not None:
         # Check if publication already exists
