@@ -75,10 +75,16 @@ def main():
 
         if "author" in entry.persons:
             authors = ", ".join([str(author) for author in entry.persons["author"]])
+            # Clean-up search string
+            authors = authors.replace("{", "")
+            authors = authors.replace("}", "")
         else:
             authors = ""
         if "title" in entry.fields:
             title = entry.fields["title"]
+            # Clean-up search string
+            title = title.replace("{", "")
+            title = title.replace("}", "")
         else:
             title = ""
 
