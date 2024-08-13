@@ -59,7 +59,7 @@ def convert_dblp_entries(bib, bib_format=dblp_api.BibFormat.condensed):
                 # DBLP key is not used as bibtex key -> remember DBLP key
                 key = next(iter(data.entries))
                 new_entry = data.entries[key]
-                new_entry.fields['biburl'] = entry.fields['biburl']
+                new_entry.fields["biburl"] = entry.fields["biburl"]
                 bib.entries[entry_str] = new_entry
 
             else:
@@ -87,10 +87,10 @@ def search(bib, search_string):
     """
     results = []
     for _, entry in bib.entries.items():
-        if 'author' in entry.persons:
-            authors = entry.persons['author']
+        if "author" in entry.persons:
+            authors = entry.persons["author"]
             author_names = " and ".join([str(author) for author in authors])
-        elif 'organization' in entry.fields:
+        elif "organization" in entry.fields:
             author_names = str(entry.fields["organization"])
         else:
             author_names = ""
@@ -108,15 +108,15 @@ def print_entry(bib_entry):
     :param bib_entry: Pybtex entry.
     :return: String.
     """
-    if 'author' in bib_entry.persons:
-        authors = ", ".join([str(author) for author in bib_entry.persons['author']])
-    elif 'organization' in bib_entry.fields:
+    if "author" in bib_entry.persons:
+        authors = ", ".join([str(author) for author in bib_entry.persons["author"]])
+    elif "organization" in bib_entry.fields:
         authors = str(bib_entry.fields["organization"])
     else:
         authors = ""
     book = ""
-    if 'booktitle' in bib_entry.fields:
-        book = bib_entry.fields['booktitle']
-    if 'volume' in bib_entry.fields:
-        book += " ({})".format(bib_entry.fields['volume'])
-    return "{}:\n\t{} {} {}".format(authors, bib_entry.fields['title'], book, bib_entry.fields['year'])
+    if "booktitle" in bib_entry.fields:
+        book = bib_entry.fields["booktitle"]
+    if "volume" in bib_entry.fields:
+        book += " ({})".format(bib_entry.fields["volume"])
+    return "{}:\n\t{} {} {}".format(authors, bib_entry.fields["title"], book, bib_entry.fields["year"])

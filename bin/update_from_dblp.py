@@ -41,24 +41,20 @@ def search_entry(search_string, include_arxiv=False, max_search_results=bibtex_d
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Update entries in bibliography via DBLP.')
+    parser = argparse.ArgumentParser(description="Update entries in bibliography via DBLP.")
 
-    parser.add_argument('infile', help='Input bibtex file', type=str)
-    parser.add_argument('--out', '-o',
-                        help='Output bibtex file. If no output file is given, the input file will be overwritten.',
-                        type=str, default=None)
-    parser.add_argument('--format', '-f', help='DBLP format type to convert into', type=BibFormat,
-                        choices=list(BibFormat), default=BibFormat.condensed)
-    parser.add_argument('--max-results', help="Maximal number of search results to display.", type=int,
-                        default=bibtex_dblp.config.MAX_SEARCH_RESULTS)
-    parser.add_argument('--disable-auto', help='Disable automatic selection of publications.', action="store_true")
-    parser.add_argument('--include-arxiv', help='Include entries from arXiv in search results.', action="store_true")
-    parser.add_argument('--sleep-time', '-t', help='Sleep time (in seconds) between requests. Can prevent errors with too many requests)', type=int, default=3)
-    parser.add_argument('--verbose', '-v', help='Print more output', action="store_true")
+    parser.add_argument("infile", help="Input bibtex file", type=str)
+    parser.add_argument("--out", "-o", help="Output bibtex file. If no output file is given, the input file will be overwritten.", type=str, default=None)
+    parser.add_argument("--format", "-f", help="DBLP format type to convert into", type=BibFormat, choices=list(BibFormat), default=BibFormat.condensed)
+    parser.add_argument("--max-results", help="Maximal number of search results to display.", type=int, default=bibtex_dblp.config.MAX_SEARCH_RESULTS)
+    parser.add_argument("--disable-auto", help="Disable automatic selection of publications.", action="store_true")
+    parser.add_argument("--include-arxiv", help="Include entries from arXiv in search results.", action="store_true")
+    parser.add_argument("--sleep-time", "-t", help="Sleep time (in seconds) between requests. Can prevent errors with too many requests)", type=int, default=3)
+    parser.add_argument("--verbose", "-v", help="Print more output", action="store_true")
 
     args = parser.parse_args()
 
-    logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.DEBUG if args.verbose else logging.INFO)
+    logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.DEBUG if args.verbose else logging.INFO)
     outfile = args.infile if args.out is None else args.out
     bib_format = args.format
     max_search_results = args.max_results
@@ -77,12 +73,12 @@ def main():
         if dblp_id is not None:
             continue
 
-        if 'author' in entry.persons:
-            authors = ", ".join([str(author) for author in entry.persons['author']])
+        if "author" in entry.persons:
+            authors = ", ".join([str(author) for author in entry.persons["author"]])
         else:
             authors = ""
-        if 'title' in entry.fields:
-            title = entry.fields['title']
+        if "title" in entry.fields:
+            title = entry.fields["title"]
         else:
             title = ""
 

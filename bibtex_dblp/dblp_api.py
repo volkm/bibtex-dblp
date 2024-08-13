@@ -15,10 +15,11 @@ class BibFormat(Enum):
     """
     Format of DBLP bibtex.
     """
-    condensed = 'condensed'
-    standard = 'standard'
-    crossref = 'crossref'
-    condensed_doi = 'condensed_doi'
+
+    condensed = "condensed"
+    standard = "standard"
+    crossref = "crossref"
+    condensed_doi = "condensed_doi"
 
     def bib_url(self):
         """
@@ -88,13 +89,12 @@ def get_bibtex(dblp_id, bib_format=BibFormat.condensed):
         else:
             raise err
 
-    bibtex = resp.content.decode('utf-8')
+    bibtex = resp.content.decode("utf-8")
 
     if bib_format == BibFormat.condensed_doi:
         # Also get DOI and insert it into bibtex
-        resp = perform_request(
-            config.DBLP_PUBLICATION_BIBTEX.format(key=dblp_id, bib_format=BibFormat.standard.bib_url()))
-        lines = resp.content.decode('utf-8').split('\n')
+        resp = perform_request(config.DBLP_PUBLICATION_BIBTEX.format(key=dblp_id, bib_format=BibFormat.standard.bib_url()))
+        lines = resp.content.decode("utf-8").split("\n")
         keep_lines = [line for line in lines if line.startswith("  doi")]
         assert len(keep_lines) <= 1
         if keep_lines:
@@ -118,11 +118,7 @@ def search_publication(pub_query, max_search_results=config.MAX_SEARCH_RESULTS):
     :param max_search_results: Maximal number of search results to return.
     :return: Search results.
     """
-    parameters = dict(
-        q=pub_query,
-        format="json",
-        h=max_search_results
-    )
+    parameters = dict(q=pub_query, format="json", h=max_search_results)
 
     resp = perform_request(config.DBLP_PUBLICATION_SEARCH_URL, params=parameters)
     results = bibtex_dblp.dblp_data.DblpSearchResults(resp.json())
