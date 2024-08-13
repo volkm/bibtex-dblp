@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools >= 61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bibtex-dblp"
+version = "1.0"
+authors = [
+    {name = "M. Volk", email = "m.volk@tue.nl"},
+]
+description = "Create and revise bibtex entries from DBLP."
+readme = "README.md"
+license = {file = "LICENSE"}
+requires-python = ">=3.8"
+dependencies = [
+    "requests",
+    "pybtex",
+    "pyperclip",  # Copy to clipboard
+]
+
+[project.urls]
+Homepage = "https://github.com/volkm/bibtex-dblp"
+
+[project.scripts]
+import_dblp = "import_dblp:main"
+convert_dblp = "convert_dblp:main"
+update_from_dblp = "update_from_dblp:main"
+
+[tool.black]
+line-length = 160
+include = '\.pyi?$'
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+testpaths = [
+    "tests",
+]
