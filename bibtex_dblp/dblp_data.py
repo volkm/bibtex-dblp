@@ -59,9 +59,15 @@ class DblpPublication:
         return "DBLP:" + self.key
 
     def __str__(self):
-        authors = ", ".join([str(author) for author in self.authors])
-        book = str(self.venue) + " ({})".format(self.volume) if self.volume else ""
-        return "{}:\n\t{} {} {}".format(authors, self.title, book, self.year)
+        s = ", ".join([str(author) for author in self.authors])
+        s += ":\n\t"
+        s += self.title[:-1] if self.title.endswith(".") else self.title
+        s += ", " + self.venue
+        s += " ({})".format(self.volume) if self.volume else ""
+        s += ", {}".format(self.year)
+        if self.ee:
+            s += "\n\t{}".format(self.ee)
+        return s
 
 
 class DblpAuthor:
