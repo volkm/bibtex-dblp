@@ -20,6 +20,16 @@ dependencies = [
 
 [project.urls]
 Homepage = "https://github.com/volkm/bibtex-dblp"
+"Bug Tracker" = "https://github.com/volkm/bibtex-dblp/issues"
+
+[project.optional-dependencies]
+dev = [
+    # Formatting
+    "black",
+]
+test = [
+    "pytest",
+]
 
 [project.scripts]
 import_dblp = "import_dblp:main"

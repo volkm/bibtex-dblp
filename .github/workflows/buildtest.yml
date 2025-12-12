@@ -1,9 +1,14 @@
 name: Build and Test
+# Builds and tests dftlib with different dependencies
 
 on:
   push:
-  pull_request:
+  schedule:
+    # run weekly
+    - cron: '0 10 * * 3'
+  # needed to trigger the workflow manually
   workflow_dispatch:
+  pull_request:
 
 concurrency:
   group: Build and Test ${{ github.ref }}
@@ -27,7 +32,8 @@ jobs:
           - ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v6
+      - name: Git clone
+        uses: actions/checkout@v6
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v6
         with:
