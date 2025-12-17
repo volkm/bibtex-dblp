@@ -25,7 +25,8 @@ def main():
     outfile = args.infile if args.out is None else args.out
 
     bib = bibtex_dblp.database.load_from_file(args.infile)
-    bib, no_changes = bibtex_dblp.database.convert_dblp_entries(bib, bib_format=args.format)
+    session = bibtex_dblp.dblp_api.DblpSession
+    bib, no_changes = bibtex_dblp.database.convert_dblp_entries(session, bib, bib_format=args.format)
     logging.info("Updated {} entries (out of {}) from DBLP".format(no_changes, len(bib.entries)))
     bibtex_dblp.database.write_to_file(bib, outfile)
     logging.info("Written to {}".format(outfile))

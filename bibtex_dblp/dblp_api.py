@@ -1,9 +1,7 @@
 import re
 from enum import Enum
-
 import requests
 
-import bibtex_dblp.config as config
 import bibtex_dblp.dblp_data
 
 
@@ -41,18 +39,40 @@ class BibFormat(Enum):
         return self.value
 
 
-def perform_request(url, params=None, **kwargs):
+class DblpSession:
     """
-    Perform a GET request to DBLP.
-    :param url: URL to access.
-    :param params: Optional parameters.
-    :param kwargs: Optional arguments.
-    :return: Response.
-    :raises: HTTPError if request was unsuccessful.
+    Keeps track of session for DBLP.
+    Needed for rate limiting.
     """
-    response = requests.get(url, params=params, **kwargs)
-    response.raise_for_status()
-    return response
+
+    def __init__(self, max_tries=3, wait_time=3, dblp_base_url="https://dblp.org"):
+        """
+        Create a session for DBLP.
+        :param max_tries: Number of times to retry a request before giving up.
+        :param wait_time: Time in seconds to sleep before retrying.
+        :param dblp_base_url: Base URL for DBLP.
+        """
+        self.base_url = dblp_base_url
+        self.max_tries = max_tries
+        self.wait_time = wait_time
+
+        self.publication_search_url = self.base_url + "/search/publ/api"
+        self.publication_bibtex = self.base_url + "/rec/{key}.bib?param={bib_format}"
+
+        self.session = requests.Session()
+
+    def perform_request(self, url, params=None, **kwargs):
+        """
+        Perform a GET request to DBLP.
+        :param url: URL to access.
+        :param params: Optional parameters.
+        :param kwargs: Optional arguments.
+        :return: Response.
+        :raises: HTTPError if request was unsuccessful.
+        """
+        response = self.session.get(url, params=params, **kwargs)
+        response.raise_for_status()
+        return response
 
 
 def extract_dblp_id(entry):
@@ -74,15 +94,16 @@ def extract_dblp_id(entry):
     return None
 
 
-def get_bibtex(dblp_id, bib_format=BibFormat.condensed):
+def get_bibtex(session, dblp_id, bib_format=BibFormat.condensed):
     """
     Get bibtex entry in specified format.
+    :param session: DBLP session.
     :param dblp_id: DBLP id for entry.
     :param bib_format: Format of bibtex export (see BibFormat).
     :return: Bibtex as binary string.
     """
     try:
-        resp = perform_request(config.DBLP_PUBLICATION_BIBTEX.format(key=dblp_id, bib_format=bib_format.bib_url()))
+        resp = session.perform_request(session.publication_bibtex.format(key=dblp_id, bib_format=bib_format.bib_url()))
     except requests.exceptions.HTTPError as err:
         if err.response.status_code == 404:
             raise InvalidDblpIdException("Invalid DBLP id '{}'".format(dblp_id))
@@ -93,7 +114,7 @@ def get_bibtex(dblp_id, bib_format=BibFormat.condensed):
 
     if bib_format == BibFormat.condensed_doi:
         # Also get DOI and insert it into bibtex
-        resp = perform_request(config.DBLP_PUBLICATION_BIBTEX.format(key=dblp_id, bib_format=BibFormat.standard.bib_url()))
+        resp = session.perform_request(session.publication_bibtex.format(key=dblp_id, bib_format=BibFormat.standard.bib_url()))
         lines = resp.content.decode("utf-8").split("\n")
         keep_lines = [line for line in lines if line.startswith("  doi")]
         assert len(keep_lines) <= 1
@@ -111,16 +132,17 @@ def get_bibtex(dblp_id, bib_format=BibFormat.condensed):
     return bibtex
 
 
-def search_publication(pub_query, max_search_results=config.MAX_SEARCH_RESULTS):
+def search_publication(session, pub_query, max_search_results):
     """
     Search for publication according to given query.
+    :param session: DBLP session.
     :param pub_query: Query for publication.
     :param max_search_results: Maximal number of search results to return.
     :return: Search results.
     """
     parameters = dict(q=pub_query, format="json", h=max_search_results)
 
-    resp = perform_request(config.DBLP_PUBLICATION_SEARCH_URL, params=parameters)
+    resp = session.perform_request(session.publication_search_url, params=parameters)
     results = bibtex_dblp.dblp_data.DblpSearchResults(resp.json())
     assert results.status_code == 200
     return results

@@ -2,9 +2,9 @@ import bibtex_dblp.dblp_api
 from bibtex_dblp.dblp_api import BibFormat
 
 
-def test_search_publication():
+def test_search_publication(dblp_session):
     search_string = "Output-sensitive autocompletion search"
-    search_results = bibtex_dblp.dblp_api.search_publication(search_string, max_search_results=30)
+    search_results = bibtex_dblp.dblp_api.search_publication(dblp_session, search_string, max_search_results=30)
     assert search_results.total_matches == 2
     for i in range(len(search_results.results)):
         result = search_results.results[i].publication
@@ -28,25 +28,25 @@ def test_search_publication():
             assert result.doi == "10.1007/11880561_13"
 
 
-def test_dblp_bibtex():
+def test_dblp_bibtex(dblp_session):
     search_string = "Output-sensitive autocompletion search"
-    search_results = bibtex_dblp.dblp_api.search_publication(search_string, max_search_results=30)
+    search_results = bibtex_dblp.dblp_api.search_publication(dblp_session, search_string, max_search_results=30)
     assert search_results.total_matches == 2
     result = search_results.results[1].publication
     assert result.doi == "10.1007/11880561_13"
 
-    bibtex_standard = bibtex_dblp.dblp_api.get_bibtex(result.key, bib_format=BibFormat.standard)
+    bibtex_standard = bibtex_dblp.dblp_api.get_bibtex(dblp_session, result.key, bib_format=BibFormat.standard)
     assert "booktitle    = {String Processing and Information Retrieval, 13th International Conference," in bibtex_standard
     assert "{SPIRE} 2006, Glasgow, UK, October 11-13, 2006, Proceedings}" in bibtex_standard
 
-    bibtex_crossref = bibtex_dblp.dblp_api.get_bibtex(result.key, bib_format=BibFormat.crossref)
+    bibtex_crossref = bibtex_dblp.dblp_api.get_bibtex(dblp_session, result.key, bib_format=BibFormat.crossref)
     assert "crossref     = {DBLP:conf/spire/2006}," in bibtex_crossref
     assert "editor " in bibtex_crossref
 
-    bibtex_condensed = bibtex_dblp.dblp_api.get_bibtex(result.key, bib_format=BibFormat.condensed)
+    bibtex_condensed = bibtex_dblp.dblp_api.get_bibtex(dblp_session, result.key, bib_format=BibFormat.condensed)
     assert "booktitle    = {{SPIRE}}" in bibtex_condensed
     assert "doi" not in bibtex_condensed
 
-    bibtex_condensed_doi = bibtex_dblp.dblp_api.get_bibtex(result.key, bib_format=BibFormat.condensed_doi)
+    bibtex_condensed_doi = bibtex_dblp.dblp_api.get_bibtex(dblp_session, result.key, bib_format=BibFormat.condensed_doi)
     assert "booktitle    = {{SPIRE}}" in bibtex_condensed_doi
     assert "doi          = {10.1007/11880561\\_13}" in bibtex_condensed_doi

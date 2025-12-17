@@ -33,9 +33,10 @@ def parse_bibtex(bibtex):
     return pybtex.database.parse_string(bibtex, bib_format="bibtex")
 
 
-def convert_dblp_entries(bib, bib_format=dblp_api.BibFormat.condensed):
+def convert_dblp_entries(session, bib, bib_format=dblp_api.BibFormat.condensed):
     """
     Convert bibtex entries according to DBLP bibtex format.
+    :param session: DBLP session.
     :param bib: Bibliography in pybtex format.
     :param bib_format: Bibtex format of DBLP.
     :return: converted bibliography, number of changed entries
@@ -48,7 +49,7 @@ def convert_dblp_entries(bib, bib_format=dblp_api.BibFormat.condensed):
         if dblp_id is not None:
             logging.debug("Found DBLP id '{}'".format(dblp_id))
             try:
-                result_dblp = dblp_api.get_bibtex(dblp_id, bib_format=bib_format)
+                result_dblp = dblp_api.get_bibtex(session, dblp_id, bib_format=bib_format)
             except dblp_api.InvalidDblpIdException as err:
                 logging.warning(str(err) + ". Skipping this entry.")
                 continue
