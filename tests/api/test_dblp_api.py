@@ -10,7 +10,7 @@ def test_search_publication(dblp_session):
         result = search_results.results[i].publication
         if result.doi == "10.1007/S10791-008-9048-X":
             assert result.title == "Output-sensitive autocompletion search."
-            assert result.booktitle == None
+            assert result.booktitle is None
             assert result.volume == "11"
             assert result.venue == "Inf. Retr."
             assert result.pages == "269-286"

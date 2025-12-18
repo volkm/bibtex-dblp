@@ -24,8 +24,7 @@ Homepage = "https://github.com/volkm/bibtex-dblp"
 
 [project.optional-dependencies]
 dev = [
-    # Formatting
-    "black",
+    "black", # Formatting
 ]
 test = [
     "pytest",

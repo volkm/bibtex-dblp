@@ -10,7 +10,7 @@ def load_from_file(infile):
     """
     Load bibliography from file.
     :param infile: Path of input file.
-    :return: Bibiliography in pybtex format.
+    :return: Bibliography in pybtex format.
     """
     return pybtex.database.parse_file(infile, bib_format="bibtex")
 
@@ -69,10 +69,10 @@ def convert_dblp_entries(session, bib, bib_format=dblp_api.BibFormat.condensed):
                 bib.entries[entry_str] = new_entry
                 if bib_format is dblp_api.BibFormat.crossref:
                     # Possible second entry
-                    for key, entry in data.entries.items():
-                        if key != entry_str:
-                            if key not in bib.entries:
-                                bib.entries[key] = entry
+                    for data_key, data_entry in data.entries.items():
+                        if data_key != entry_str:
+                            if data_key not in bib.entries:
+                                bib.entries[data_key] = data_entry
             logging.debug("Set new entry for '{}'".format(entry_str))
             no_changes += 1
     return bib, no_changes
