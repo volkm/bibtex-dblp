@@ -11,11 +11,12 @@ authors = [
 description = "Create and revise bibtex entries from DBLP."
 readme = "README.md"
 license = {file = "LICENSE"}
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 dependencies = [
     "requests",
     "pybtex",
     "pyperclip",  # Copy to clipboard
+    "requests-ratelimiter", # Rate limiting for requests
 ]
 
 [project.urls]
@@ -24,8 +25,7 @@ Homepage = "https://github.com/volkm/bibtex-dblp"
 
 [project.optional-dependencies]
 dev = [
-    # Formatting
-    "black",
+    "black", # Formatting
 ]
 test = [
     "pytest",

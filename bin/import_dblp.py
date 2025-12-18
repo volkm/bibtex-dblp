@@ -8,11 +8,10 @@ import logging
 
 import pyperclip
 
-import bibtex_dblp.config
 import bibtex_dblp.database
 import bibtex_dblp.dblp_api
 import bibtex_dblp.io
-from bibtex_dblp.dblp_api import BibFormat
+from bibtex_dblp.dblp_api import BibFormat, DblpSession
 
 
 def main():
@@ -29,7 +28,8 @@ def main():
         default=None,
     )
     parser.add_argument("--format", "-f", help="DBLP format type to convert into.", type=BibFormat, choices=list(BibFormat), default=BibFormat.condensed)
-    parser.add_argument("--max-results", help="Maximal number of search results to display.", type=int, default=bibtex_dblp.config.MAX_SEARCH_RESULTS)
+    parser.add_argument("--max-results", help="Maximal number of search results to display.", type=int, default=30)
+    parser.add_argument("--sleep-time", "-t", help="Sleep time (in seconds) between requests. Can prevent errors with too many requests)", type=int, default=5)
 
     parser.add_argument("--verbose", "-v", help="print more output", action="store_true")
     args = parser.parse_args()
@@ -66,7 +66,8 @@ def main():
                 logging.info("Copied cite key '{}' to clipboard.".format(selected_entry.key))
                 exit(0)
 
-    search_results = bibtex_dblp.dblp_api.search_publication(search_words, max_search_results=max_search_results)
+    session = DblpSession(wait_time=args.sleep_time)
+    search_results = bibtex_dblp.dblp_api.search_publication(session, search_words, max_search_results=max_search_results)
     if search_results.total_matches == 0:
         print("The search returned no matches.")
         exit(1)
@@ -85,7 +86,7 @@ def main():
         exit(1)
 
     publication = search_results.results[select - 1].publication
-    pub_bibtex = bibtex_dblp.dblp_api.get_bibtex(publication.key, bib_format=args.format)
+    pub_bibtex = bibtex_dblp.dblp_api.get_bibtex(session, publication.key, bib_format=args.format)
     if args.bib:
         with open(args.bib, "a") as f:
             f.write(pub_bibtex)

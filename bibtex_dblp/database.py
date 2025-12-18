@@ -10,7 +10,7 @@ def load_from_file(infile):
     """
     Load bibliography from file.
     :param infile: Path of input file.
-    :return: Bibiliography in pybtex format.
+    :return: Bibliography in pybtex format.
     """
     return pybtex.database.parse_file(infile, bib_format="bibtex")
 
@@ -33,9 +33,10 @@ def parse_bibtex(bibtex):
     return pybtex.database.parse_string(bibtex, bib_format="bibtex")
 
 
-def convert_dblp_entries(bib, bib_format=dblp_api.BibFormat.condensed):
+def convert_dblp_entries(session, bib, bib_format=dblp_api.BibFormat.condensed):
     """
     Convert bibtex entries according to DBLP bibtex format.
+    :param session: DBLP session.
     :param bib: Bibliography in pybtex format.
     :param bib_format: Bibtex format of DBLP.
     :return: converted bibliography, number of changed entries
@@ -48,7 +49,7 @@ def convert_dblp_entries(bib, bib_format=dblp_api.BibFormat.condensed):
         if dblp_id is not None:
             logging.debug("Found DBLP id '{}'".format(dblp_id))
             try:
-                result_dblp = dblp_api.get_bibtex(dblp_id, bib_format=bib_format)
+                result_dblp = dblp_api.get_bibtex(session, dblp_id, bib_format=bib_format)
             except dblp_api.InvalidDblpIdException as err:
                 logging.warning(str(err) + ". Skipping this entry.")
                 continue
@@ -68,10 +69,10 @@ def convert_dblp_entries(bib, bib_format=dblp_api.BibFormat.condensed):
                 bib.entries[entry_str] = new_entry
                 if bib_format is dblp_api.BibFormat.crossref:
                     # Possible second entry
-                    for key, entry in data.entries.items():
-                        if key != entry_str:
-                            if key not in bib.entries:
-                                bib.entries[key] = entry
+                    for data_key, data_entry in data.entries.items():
+                        if data_key != entry_str:
+                            if data_key not in bib.entries:
+                                bib.entries[data_key] = data_entry
             logging.debug("Set new entry for '{}'".format(entry_str))
             no_changes += 1
     return bib, no_changes
