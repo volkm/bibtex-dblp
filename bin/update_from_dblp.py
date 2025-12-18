@@ -138,9 +138,10 @@ def main():
     # Set new entries
     bib.entries = new_entries
 
-    logging.info("The following entries were not found:")
-    for m in missing_entries:
-        logging.info("- {}".format(m))
+    if missing_entries:
+        logging.info("The following entries were not found:")
+        for m in missing_entries:
+            logging.info("- {}".format(m))
 
     # Write to file
     bibtex_dblp.database.write_to_file(bib, outfile)
