@@ -16,6 +16,7 @@ dependencies = [
     "requests",
     "pybtex",
     "pyperclip",  # Copy to clipboard
+    "requests-ratelimiter", # Rate limiting for requests
 ]
 
 [project.urls]

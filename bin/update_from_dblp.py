@@ -49,7 +49,7 @@ def main():
     parser.add_argument("--max-results", help="Maximal number of search results to display.", type=int, default=30)
     parser.add_argument("--disable-auto", help="Disable automatic selection of publications.", action="store_true")
     parser.add_argument("--include-arxiv", help="Include entries from arXiv in search results.", action="store_true")
-    parser.add_argument("--sleep-time", "-t", help="Sleep time (in seconds) between requests. Can prevent errors with too many requests)", type=int, default=3)
+    parser.add_argument("--sleep-time", "-t", help="Sleep time (in seconds) between requests. Can prevent errors with too many requests)", type=int, default=5)
     parser.add_argument("--verbose", "-v", help="Print more output", action="store_true")
 
     args = parser.parse_args()
@@ -60,14 +60,13 @@ def main():
     max_search_results = args.max_results
     auto_mode = not args.disable_auto
     include_arxiv = args.include_arxiv
-    sleep_time = args.sleep_time  # Sleep in seconds if too many requests
 
     # Load bibliography
     bib = bibtex_dblp.database.load_from_file(args.infile)
     new_entries = deepcopy(bib.entries)
     # Iterate over all entries
     missing_entries = []
-    session = DblpSession
+    session = DblpSession(wait_time=args.sleep_time)
     for entry_str, entry in bib.entries.items():
         # Check for id
         dblp_id = bibtex_dblp.dblp_api.extract_dblp_id(entry)
@@ -98,22 +97,18 @@ def main():
         except requests.exceptions.HTTPError as err:
             logging.warning("Search request returned error {}. Skipped this entry.".format(err))
             missing_entries.append(search_string)
-            if err.response.status_code == 429:
-                time.sleep(sleep_time)  # Sleep again to prevent too many requests
             continue
 
         if total_matches == 0:
             # No luck -> try next entry
             logging.debug("The search returned no matches.")
             missing_entries.append(search_string)
-            time.sleep(sleep_time)  # Prevent too many requests
             continue
 
         if auto_mode and len(search_results) == 1:
             # Select single publication
             publication = search_results[0].publication
             logging.debug("The search returned a single match.")
-            time.sleep(sleep_time)  # Prevent too many requests
         else:
             assert len(search_results) > 1
             # Let user select correct publication

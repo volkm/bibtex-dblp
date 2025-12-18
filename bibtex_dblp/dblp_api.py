@@ -1,6 +1,7 @@
 import re
 from enum import Enum
-import requests
+from requests.exceptions import HTTPError
+from requests_ratelimiter import LimiterSession
 
 import bibtex_dblp.dblp_data
 
@@ -45,21 +46,19 @@ class DblpSession:
     Needed for rate limiting.
     """
 
-    def __init__(self, max_tries=3, wait_time=3, dblp_base_url="https://dblp.org"):
+    def __init__(self, wait_time, dblp_base_url="https://dblp.org"):
         """
         Create a session for DBLP.
-        :param max_tries: Number of times to retry a request before giving up.
         :param wait_time: Time in seconds to sleep before retrying.
         :param dblp_base_url: Base URL for DBLP.
         """
         self.base_url = dblp_base_url
-        self.max_tries = max_tries
         self.wait_time = wait_time
 
         self.publication_search_url = self.base_url + "/search/publ/api"
         self.publication_bibtex = self.base_url + "/rec/{key}.bib?param={bib_format}"
 
-        self.session = requests.Session()
+        self.session = LimiterSession(per_second=1.0 / wait_time, per_minute=60.0 / wait_time, burst=3)
 
     def perform_request(self, url, params=None, **kwargs):
         """
@@ -104,7 +103,7 @@ def get_bibtex(session, dblp_id, bib_format=BibFormat.condensed):
     """
     try:
         resp = session.perform_request(session.publication_bibtex.format(key=dblp_id, bib_format=bib_format.bib_url()))
-    except requests.exceptions.HTTPError as err:
+    except HTTPError as err:
         if err.response.status_code == 404:
             raise InvalidDblpIdException("Invalid DBLP id '{}'".format(dblp_id))
         else:
