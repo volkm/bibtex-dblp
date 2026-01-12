@@ -6,7 +6,6 @@ Import entry from DBLP according to given search input.
 import argparse
 import logging
 import requests
-import time
 from copy import deepcopy
 
 import bibtex_dblp.database
