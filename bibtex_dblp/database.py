@@ -1,6 +1,6 @@
 import logging
-
 import pybtex.database
+import re
 
 import bibtex_dblp.dblp_api as dblp_api
 import bibtex_dblp.search
@@ -22,6 +22,12 @@ def write_to_file(bib, outfile):
     :param outfile: Path of output file.
     """
     bib.to_file(outfile, bib_format="bibtex")
+
+    # Perform some custom changes
+    content = outfile.read_text(encoding="utf-8")
+    # Replace multiple escape characters \\ before by a single one \
+    content = re.sub(r"\\{2,}", r"\\", content)
+    outfile.write_text(content, encoding="utf-8")
 
 
 def parse_bibtex(bibtex):
