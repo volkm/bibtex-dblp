@@ -31,3 +31,25 @@ def test_import_export(tmp_path):
         with open(tmp_file2) as f2:
             diff = list(unified_diff(f1.readlines(), f2.readlines()))
     assert not diff, "Files differ:\n{}".format("".join(diff))
+
+
+def test_modify_entries():
+    def count_entries(_bib):
+        num_escapes = num_timestamp = num_biburl = num_bibsource = 0
+        for entry_str, entry in _bib.entries.items():
+            if "url" in entry.fields and "\\_" in entry.fields["url"]:
+                num_escapes += 1
+            if "doi" in entry.fields and "\\_" in entry.fields["doi"]:
+                num_escapes += 1
+            if "timestamp" in entry.fields:
+                num_timestamp += 1
+            if "biburl" in entry.fields:
+                num_biburl += 1
+            if "bibsource" in entry.fields:
+                num_bibsource += 1
+        return num_escapes, num_timestamp, num_biburl, num_bibsource
+
+    bib = bibtex_dblp.database.load_from_file(bib_path("ley.bib"))
+    assert count_entries(bib) == (2, 9, 9, 9)
+    bib = bibtex_dblp.database.modify_entries(bib, remove_escapes=True, remove_timestamp=True, remove_biburl=True, remove_bibsource=True)
+    assert count_entries(bib) == (0, 0, 0, 0)

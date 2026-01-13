@@ -45,7 +45,7 @@ def convert_dblp_entries(session, bib, bib_format=dblp_api.BibFormat.condensed):
     :param session: DBLP session.
     :param bib: Bibliography in pybtex format.
     :param bib_format: Bibtex format of DBLP.
-    :return: converted bibliography, number of changed entries
+    :return: Converted bibliography, number of changed entries
     """
     logging.debug("Convert to format '{}'".format(bib_format))
     no_changes = 0
@@ -82,6 +82,33 @@ def convert_dblp_entries(session, bib, bib_format=dblp_api.BibFormat.condensed):
             logging.debug("Set new entry for '{}'".format(entry_str))
             no_changes += 1
     return bib, no_changes
+
+
+def modify_entries(bib, remove_escapes=False, remove_timestamp=False, remove_biburl=False, remove_bibsource=False):
+    """
+    Modify bibtex entries.
+    :param bib: Bibliography in pybtex format.
+    :param remove_escapes: Whether to remove escape characters before underscore in URLs.
+    :param remove_timestamp: Whether to remove field 'timestamp'.
+    :param remove_biburl: Whether to remove field 'biburl'.
+    :param remove_bibsource: Whether to remove field 'bibsource'.
+    :return: Modified bibliography.
+    """
+    if not remove_escapes and not remove_timestamp and not remove_biburl and not remove_bibsource:
+        return bib
+
+    for entry_str, entry in bib.entries.items():
+        if remove_escapes and "url" in entry.fields:
+            entry.fields["url"] = entry.fields["url"].replace("\\_", "_")
+        if remove_escapes and "doi" in entry.fields:
+            entry.fields["doi"] = entry.fields["doi"].replace("\\_", "_")
+        if remove_timestamp and "timestamp" in entry.fields:
+            del entry.fields["timestamp"]
+        if remove_biburl and "biburl" in entry.fields:
+            del entry.fields["biburl"]
+        if remove_bibsource and "bibsource" in entry.fields:
+            del entry.fields["bibsource"]
+    return bib
 
 
 def search(bib, search_string):
