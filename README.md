@@ -62,6 +62,11 @@ The user can select the correct entry from a list of possible matches and the bi
 Bibtex entries which already have a DBLP id are left unchanged.
 
 
+### Modifying bibliography
+The script `bin/modify_bibtex.py` allows apply some modifications on the bibtex file:
+- `--no-escape` removes the escape characters in front of underscores for fields `url` and `doi`. So `\_` becomes `_`. Note that this requires the packages such as `hyperref` in LaTeX to properly compile.
+- `--no-timestamp`, `--no-biburl` and `--no-bibsource` can be added to remove the corresponding fields `timestamp`, `biburl` and `bibsource`, respectively, from the bibtex file.
+
 ## Supported DBLP formats
 The following bibtex formats from DBLP are currently supported:
 - `condensed`: Condensed format where e.g. journals and conferences are abbreviated. Default value.

@@ -5,8 +5,8 @@ Import entry from DBLP according to given search input.
 
 import argparse
 import logging
-
 import pyperclip
+from pathlib import Path
 
 import bibtex_dblp.database
 import bibtex_dblp.dblp_api
@@ -24,7 +24,7 @@ def main():
         "--bib",
         "-b",
         help="Bibtex file where the imported entry will be appended. If no bibtex file is given, the bibtex is printed to the CLI.",
-        type=str,
+        type=Path,
         default=None,
     )
     parser.add_argument("--format", "-f", help="DBLP format type to convert into.", type=BibFormat, choices=list(BibFormat), default=BibFormat.condensed)
