@@ -7,6 +7,7 @@ import argparse
 import logging
 import requests
 from copy import deepcopy
+from pathlib import Path
 
 import bibtex_dblp.database
 import bibtex_dblp.dblp_api
@@ -42,8 +43,8 @@ def search_entry(session, search_string, max_search_results, include_arxiv):
 def main():
     parser = argparse.ArgumentParser(description="Update entries in bibliography via DBLP.")
 
-    parser.add_argument("infile", help="Input bibtex file", type=str)
-    parser.add_argument("--out", "-o", help="Output bibtex file. If no output file is given, the input file will be overwritten.", type=str, default=None)
+    parser.add_argument("infile", help="Input bibtex file", type=Path)
+    parser.add_argument("--out", "-o", help="Output bibtex file. If no output file is given, the input file will be overwritten.", type=Path, default=None)
     parser.add_argument("--format", "-f", help="DBLP format type to convert into", type=BibFormat, choices=list(BibFormat), default=BibFormat.condensed)
     parser.add_argument("--max-results", help="Maximal number of search results to display.", type=int, default=30)
     parser.add_argument("--disable-auto", help="Disable automatic selection of publications.", action="store_true")

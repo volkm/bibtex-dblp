@@ -5,6 +5,7 @@ Convert DBLP entries in a given bibliography according to the specific DBLP form
 
 import argparse
 import logging
+from pathlib import Path
 
 import bibtex_dblp.database
 from bibtex_dblp.dblp_api import BibFormat, DblpSession
@@ -13,8 +14,8 @@ from bibtex_dblp.dblp_api import BibFormat, DblpSession
 def main():
     parser = argparse.ArgumentParser(description="Convert DBLP entries to specific format (condensed, standard, crossref).")
 
-    parser.add_argument("infile", help="Input bibtex file", type=str)
-    parser.add_argument("--out", "-o", help="Output bibtex file. If no output file is given, the input file will be overwritten.", type=str, default=None)
+    parser.add_argument("infile", help="Input bibtex file", type=Path)
+    parser.add_argument("--out", "-o", help="Output bibtex file. If no output file is given, the input file will be overwritten.", type=Path, default=None)
     parser.add_argument("--format", "-f", help="DBLP format type to convert into", type=BibFormat, choices=list(BibFormat), default=BibFormat.condensed)
     parser.add_argument("--sleep-time", "-t", help="Sleep time (in seconds) between requests. Can prevent errors with too many requests)", type=int, default=5)
 
