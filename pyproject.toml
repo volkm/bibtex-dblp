@@ -1,16 +1,17 @@
 [build-system]
-requires = ["setuptools >= 61.0"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling >= 1.26"]
+build-backend = "hatchling.build"
 
 [project]
 name = "bibtex-dblp"
-version = "1.0"
-authors = [
-    {name = "M. Volk", email = "m.volk@tue.nl"},
-]
 description = "Create and revise bibtex entries from DBLP."
 readme = "README.md"
-license = {file = "LICENSE"}
+license = "GPL-3.0-or-later"
+license-files = ["LICENSE"]
+dynamic = ["version"]
+authors = [
+    { name = "M. Volk", email = "m.volk@tue.nl" }
+]
 requires-python = ">=3.10"
 dependencies = [
     "requests",
@@ -25,20 +26,30 @@ Homepage = "https://github.com/volkm/bibtex-dblp"
 
 [project.optional-dependencies]
 dev = [
-    "black", # Formatting
+    # Formatting
+    "black",
 ]
 test = [
     "pytest",
 ]
 
 [project.scripts]
-import_dblp = "import_dblp:main"
-convert_dblp = "convert_dblp:main"
-update_from_dblp = "update_from_dblp:main"
+convert_dblp = "bin.convert_dblp:main"
+import_dblp = "bin.import_dblp:main"
+modify_bibtex = "bin.modify_bibtex:main"
+update_from_dblp = "bin.update_from_dblp:main"
+
+[tool.hatch.version]
+path = "bibtex_dblp/__init__.py"
 
 [tool.black]
 line-length = 160
-include = '\.pyi?$'
+target-version = [
+    "py311",
+    "py312",
+    "py313",
+    "py314",
+]
 
 [tool.pytest.ini_options]
 minversion = "6.0"
