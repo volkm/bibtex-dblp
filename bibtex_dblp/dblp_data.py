@@ -62,7 +62,7 @@ class DblpPublication:
         s = ", ".join([str(author) for author in self.authors])
         s += ":\n\t"
         s += self.title[:-1] if self.title.endswith(".") else self.title
-        s += ", " + self.venue
+        s += ", {}".format(self.venue) if self.venue else ""
         s += " ({})".format(self.volume) if self.volume else ""
         s += ", {}".format(self.year)
         if self.ee:
