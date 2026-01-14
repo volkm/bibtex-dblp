@@ -42,6 +42,9 @@ update_from_dblp = "bin.update_from_dblp:main"
 [tool.hatch.version]
 path = "bibtex_dblp/__init__.py"
 
+[tool.hatch.build.targets.wheel.force-include]
+"bin" = "bin"
+
 [tool.black]
 line-length = 160
 target-version = [
