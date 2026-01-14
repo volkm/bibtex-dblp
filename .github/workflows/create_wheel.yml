@@ -1,0 +1,156 @@
+name: Build and test wheels
+
+on:
+  # needed to reuse the workflow from another one
+  workflow_call:
+  # needed to trigger the workflow manually
+  workflow_dispatch:
+
+jobs:
+  build_wheels:
+    name: Build wheels
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.x"
+      - name: Install pypa/build
+        run: python3 -m pip install build --user
+      - name: Build a binary wheel and a source tarball
+        run: python3 -m build
+      - name: Store the distribution packages
+        uses: actions/upload-artifact@v6
+        with:
+          name: python-package-distributions
+          path: dist/
+
+
+  test_wheels_linux:
+    name: Test wheel on ${{ matrix.distro }}
+    needs: [build_wheels]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        distro:
+          - ubuntu:24.04
+          - debian:12
+          - fedora:latest
+          - archlinux:latest
+    steps:
+      - uses: actions/download-artifact@v7
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Checkout test files
+        uses: actions/checkout@v6
+        with:
+          path: dist/test_files
+          sparse-checkout: |
+            tests
+      - name: Install from wheel and test
+        run: |
+          docker run -i --rm -v ./dist:/wheel ${{ matrix.distro }} /bin/bash << 'EOF'
+          set -euo pipefail
+          set -x
+
+          cd /wheel
+
+          # Install Python & pip (varies per distro)
+          if command -v apt; then
+            apt update && DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt install -y python3 python3-pip python3-venv
+          elif command -v dnf; then
+            dnf install -y python3 python3-pip
+          elif command -v pacman; then
+            pacman -Syu --noconfirm python python-pip
+          fi
+
+          # Get major+minor version (e.g. "311" for Python 3.11)
+          PY_VER=$(python3 -c "import sys; print(f'{sys.version_info.major}{sys.version_info.minor}')")
+          echo "Python version: $PY_VER"
+
+          # Look for a matching wheel in the current directory
+          WHEEL=$(ls bibtex-dblp-*-py*-*.whl 2>/dev/null | head -n1 || true)
+          echo "Found wheel: $WHEEL"
+          if [ -z "$WHEEL" ]; then
+            echo "Error: No bibtex-dblp wheel found for Python ${PY_VER:0:1}.${PY_VER:1}." >&2
+            exit 1
+          fi
+
+          echo "Installing $WHEEL..."
+          python3 -m venv venv
+          source venv/bin/activate
+          python3 -m pip install "$WHEEL"
+
+          # Run a basic import test (replace with pytest if needed)
+          python3 -c "import bibtex_dblp; print('Import successful')"
+          pip install pytest
+          pytest test_files/tests
+          EOF
+
+
+  test_wheels_mac:
+    name: Test wheel on ${{ matrix.distro.name }}
+    needs: [build_wheels]
+    runs-on: ${{ matrix.distro.distro }}
+    strategy:
+      fail-fast: false
+      matrix:
+        distro:
+          - {name: "XCode 15.4, ARM",
+             os: macos-arm,
+             distro: "macos-14",
+             xcode: "15.4"
+          }
+          - {name: "XCode Latest, ARM",
+             os: macos-arm,
+             distro: "macos-15",
+             xcode: "latest-stable"
+          }
+          - {name: "XCode Latest, Intel",
+             os: macos-intel,
+             distro: "macos-15-intel",
+             xcode: "latest-stable"
+          }
+    steps:
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: ${{ matrix.distro.xcode }}
+      - uses: actions/download-artifact@v7
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Install from wheel and test
+        working-directory: dist
+        run: |
+          # Get major+minor version (e.g. "311" for Python 3.11)
+          PY_VER=$(python3 -c "import sys; print(f'{sys.version_info.major}{sys.version_info.minor}')")
+          echo "Python version: $PY_VER"
+          # Look for a matching wheel in the current directory
+          WHEEL=$(ls bibtex-dblp-*-py*-*.whl 2>/dev/null | head -n1 || true)
+          echo "Found wheel: $WHEEL"
+          if [ -z "$WHEEL" ]; then
+            echo "Error: No bibtex-dblp wheel found for Python ${PY_VER:0:1}.${PY_VER:1}." >&2
+            exit 1
+          fi
+          echo "Installing $WHEEL..."
+          python3 -m venv venv
+          source venv/bin/activate
+          python3 -m pip install "$WHEEL"
+      - name: Checkout test files
+        uses: actions/checkout@v6
+        with:
+          path: dist/test_files
+          sparse-checkout: |
+            tests
+      - name: Test
+        working-directory: dist
+        run: |
+          source venv/bin/activate
+          python3 -c "import bibtex_dblp; print('Import successful')"
+          python3 -m pip install pytest 
+          pytest test_files/tests

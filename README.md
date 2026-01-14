@@ -17,7 +17,7 @@ pip install bibtex-dblp
 
 Manual installation is possible by cloning this repository and building the Python package:
 ```
-python setup.py develop
+pip install .
 ```
 
 

@@ -1,5 +1,5 @@
 name: Build and Test
-# Builds and tests dftlib with different dependencies
+# Builds and tests bibtex-dblp with different dependencies
 
 on:
   push:
