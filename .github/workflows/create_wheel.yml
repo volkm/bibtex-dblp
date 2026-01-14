@@ -74,7 +74,7 @@ jobs:
           echo "Python version: $PY_VER"
 
           # Look for a matching wheel in the current directory
-          WHEEL=$(ls bibtex-dblp-*-py*-*.whl 2>/dev/null | head -n1 || true)
+          WHEEL=$(ls bibtex_dblp-*-py*-*.whl 2>/dev/null | head -n1 || true)
           echo "Found wheel: $WHEEL"
           if [ -z "$WHEEL" ]; then
             echo "Error: No bibtex-dblp wheel found for Python ${PY_VER:0:1}.${PY_VER:1}." >&2
@@ -131,7 +131,7 @@ jobs:
           PY_VER=$(python3 -c "import sys; print(f'{sys.version_info.major}{sys.version_info.minor}')")
           echo "Python version: $PY_VER"
           # Look for a matching wheel in the current directory
-          WHEEL=$(ls bibtex-dblp-*-py*-*.whl 2>/dev/null | head -n1 || true)
+          WHEEL=$(ls bibtex_dblp-*-py*-*.whl 2>/dev/null | head -n1 || true)
           echo "Found wheel: $WHEEL"
           if [ -z "$WHEEL" ]; then
             echo "Error: No bibtex-dblp wheel found for Python ${PY_VER:0:1}.${PY_VER:1}." >&2
