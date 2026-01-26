@@ -31,7 +31,7 @@ def main():
     bib = bibtex_dblp.database.load_from_file(args.infile)
     # Apply modifications
     bib = bibtex_dblp.database.modify_entries(
-        bib, remove_escapes=args.no_escapes, remove_timestamp=args.no_timestamp, remove_biburl=args.no_biburl, remove_bibsource=args.no_bibsource
+        bib, remove_escapes=args.no_escape, remove_timestamp=args.no_timestamp, remove_biburl=args.no_biburl, remove_bibsource=args.no_bibsource
     )
     bibtex_dblp.database.write_to_file(bib, outfile)
     if args.no_escape:
