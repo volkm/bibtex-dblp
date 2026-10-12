@@ -12,7 +12,7 @@ from pathlib import Path
 import bibtex_dblp.database
 import bibtex_dblp.dblp_api
 import bibtex_dblp.io
-from bibtex_dblp.dblp_api import BibFormat, DblpSession
+from bibtex_dblp.dblp_api import BibFormat
 
 
 def search_entry(session, search_string, max_search_results, include_arxiv):
@@ -50,6 +50,7 @@ def main():
     parser.add_argument("--disable-auto", help="Disable automatic selection of publications.", action="store_true")
     parser.add_argument("--include-arxiv", help="Include entries from arXiv in search results.", action="store_true")
     parser.add_argument("--sleep-time", "-t", help="Sleep time (in seconds) between requests. Can prevent errors with too many requests)", type=int, default=5)
+    bibtex_dblp.dblp_api.add_auth_arguments(parser)
     parser.add_argument("--verbose", "-v", help="Print more output", action="store_true")
 
     args = parser.parse_args()
@@ -66,7 +67,7 @@ def main():
     new_entries = deepcopy(bib.entries)
     # Iterate over all entries
     missing_entries = []
-    session = DblpSession(wait_time=args.sleep_time)
+    session = bibtex_dblp.dblp_api.session_from_args(args)
     for entry_str, entry in bib.entries.items():
         # Check for id
         dblp_id = bibtex_dblp.dblp_api.extract_dblp_id(entry)
@@ -94,7 +95,7 @@ def main():
             if total_matches == 0:
                 # Try once again with only the title
                 search_results, total_matches = search_entry(session, title, max_search_results, include_arxiv)
-        except requests.exceptions.HTTPError as err:
+        except (requests.exceptions.HTTPError, bibtex_dblp.dblp_api.DblpApiError) as err:
             logging.warning("Search request returned error {}. Skipped this entry.".format(err))
             missing_entries.append(search_string)
             continue

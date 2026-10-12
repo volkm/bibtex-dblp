@@ -40,6 +40,9 @@ The script then queries the DBLP API and displays the possible matches.
 The correct publication number can be selected in the terminal (or `0` for abort).
 The bibtex entry of the selected publication is either appended to the given bibliography (if `--bib` is provided) or displayed on the terminal.
 
+Live access depends on the DBLP API answering scripted clients. DBLP currently sits behind the [Anubis](https://github.com/TecharoHQ/anubis) bot-protection wall.
+We provide limited support to solve these challenges and ask users to use the tool responsibly.
+
 ### Converting between DBLP formats
 The script `bin/convert_dblp.py` converts the complete bibliography between different DBLP formats.
 
