@@ -3,6 +3,7 @@ from enum import Enum
 from requests.exceptions import HTTPError
 from requests_ratelimiter import LimiterSession
 
+import bibtex_dblp.anubis as anubis
 import bibtex_dblp.dblp_data
 
 
@@ -62,14 +63,20 @@ class DblpSession:
 
     def perform_request(self, url, params=None, **kwargs):
         """
-        Perform a GET request to DBLP.
+        Perform a GET request to DBLP, transparently solving any Anubis challenge.
         :param url: URL to access.
         :param params: Optional parameters.
         :param kwargs: Optional arguments.
         :return: Response.
         :raises: HTTPError if request was unsuccessful.
+        :raises: anubis.AnubisChallengeException if the challenge could not be solved.
         """
         response = self.session.get(url, params=params, **kwargs)
+        if anubis.is_challenge(response):
+            anubis.solve(response, self.session)
+            response = self.session.get(url, params=params, **kwargs)
+            if anubis.is_challenge(response):
+                raise anubis.AnubisChallengeException("Failed to solve DBLP bot protection challenge.")
         response.raise_for_status()
         return response
 
