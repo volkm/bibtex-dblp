@@ -26,6 +26,7 @@ pip install .
 All relevant scripts can be found in the `bin` directory.
 Every script provides information about the expected input and additional arguments via `--help`.
 
+Note: DBLP uses [Anubis](https://anubis.techaro.lol/) bot protection, which the scripts solve transparently.
 
 ### Importing new publications from DBLP
 The script `bin/import_dblp.py` searches for a new publication on DBLP and adds the corresponding bibtex entry to the bibliography.
